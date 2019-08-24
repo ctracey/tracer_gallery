@@ -2,6 +2,20 @@
   background-color: #2f2f2f;
 }
 
+.logs {
+  display: none; //show this to view logs
+
+  border: 1px solid #ADFF2F;
+  padding-top: 5px;
+  padding-bottom: 12px;
+  padding-left: 15px;
+  background-color: #000000;
+
+  list-style-type: none;
+  color: #696969;
+  font-size: 10px;
+}
+
 ::-webkit-scrollbar { 
   display: none; 
 }
