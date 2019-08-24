@@ -1,0 +1,17 @@
+{
+  "name": "tracer-gallery",
+  "version": "0.1.0",
+  "description": "An image folder scroller gallery",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": "https://github.com/ctracey/tracer_gallery",
+  "keywords": [
+    "gallery"
+  ],
+  "author": "ctracey",
+  "devDependencies": {
+    "electron": "^7.0.0-beta.3"
+  }
+}

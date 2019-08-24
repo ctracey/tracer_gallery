@@ -1,0 +1,8 @@
+.main {
+  background-color: #2b2e3b
+}
+
+::-webkit-scrollbar { 
+  display: none; 
+}
+
