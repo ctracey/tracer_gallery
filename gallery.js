@@ -2,37 +2,54 @@
 $(() => {
   $('#logs').append('<br/>gallery start');
 
+  let ipc
   try {
-    var ipc = require('electron').ipcRenderer;
+    ipc = require('electron').ipcRenderer;
+    ipc.send('gallery-loaded', null)
+    $('#logs').append('<br/>TRIGGERED EVENT: gallery-loaded');
     $('#logs').append('<br/>setup ipc');
   } catch (err) {
     $('#logs').append('<br/>ERROR: ' + err);
   }
 
-  $('#logs').append('<br/>gallery done');
+  $('#logs').append('<br/>gallery loaded');
 
   const updateButton = document.getElementById('updateButton')
   updateButton.addEventListener('click', function () {
     $('#logs').append('<br/>button clicked');
-    ipc.send('update-notify-value', 'updateData')
-    $('#logs').append('<br/>ipc sent');
+
+    var galleryFolder = $('#gallery-folder').val();
+    $('#logs').append('<br/>dir: ' + galleryFolder);
+
+    ipc.send('select-gallery-images', {
+      'galleryFolder': galleryFolder
+    })
+    $('#logs').append('<br/>TRIGGERED EVENT: select-gallery-images');
   })
 
-  var mainData;
-  ipc.on('mainData', function (event, arg) {
-    $('#logs').append('<br/>main data received:' + arg);
+  ipc.on('gallery-images-selected', function (event, eventData) {
+    $('#logs').append('<br/><br/>EVENT: gallery-images-selected');
+    $('#logs').append('<br/>eventData: ' + eventData);
 
-    var path = arg['path'];
-    $('#logs').append('<br/>path:' + path);
+    var galleryPath = eventData['galleryFolder'];
+    $('#logs').append('<br/>galleryPath:' + galleryPath);
 
-    //load images
-    for (var i=0; i<arg['filenames'].length; i++) {
-      var imageFilename = arg['filenames'][i];
-      $('#logs').append('<br/>image:' + imageFilename);
-
-      imagePath = path + '/' + imageFilename;
+    //display new images
+    $('#gallery_container').empty();
+    for (var i=0; i<eventData['imageFilenames'].length; i++) {
+      var imageFilename = eventData['imageFilenames'][i];
+      imagePath = galleryPath + '/' + imageFilename;
+      $('#logs').append('<br/>imagePath:' + imagePath);
       $('#gallery_container').append("<img style='width:100%' src='" + imagePath + "'/>");
     }
+  })
+
+  ipc.on('init-gallery', function (event, eventData) {
+    $('#logs').append('<br/><br/>EVENT: init-gallery received');
+    $('#logs').append('<br/>eventData: ' + eventData);
+
+    var galleryDefaultFolder = eventData['defaultFolder'];
+    $('#gallery-folder').val(galleryDefaultFolder);
   })
 })
 

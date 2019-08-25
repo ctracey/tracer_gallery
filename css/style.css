@@ -1,9 +1,16 @@
+::-webkit-scrollbar { 
+  display: none; 
+}
+
 .main {
   background-color: #2f2f2f;
 }
 
 .logs {
-  /* display: none; //show this to view logs */
+  display: none; //this will hide the logs
+
+  height: 50px;
+  overflow-y: scroll;
 
   border: 1px solid #ADFF2F;
   padding-top: 5px;
@@ -16,7 +23,15 @@
   font-size: 10px;
 }
 
-::-webkit-scrollbar { 
-  display: none; 
+.gallery-folder {
+  width: 90%;
 }
 
+.settings-container {
+  width: 95%;
+  border: 1px solid #696969;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  color: #696969;
+}

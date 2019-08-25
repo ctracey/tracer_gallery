@@ -4,12 +4,15 @@ const path = require('path')
 const ipc = require('electron').ipcMain
 const fs = require('fs')
 
+const defaultFolder = './test/sample_images'
+
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
 
 function createWindow () {
   // Create the browser window.
+  console.log('create main window');
   mainWindow = new BrowserWindow({
     width: 250,
     height: 800,
@@ -21,16 +24,16 @@ function createWindow () {
   // and load the index.html of the app.
   mainWindow.loadFile('index.html')
 
-    // Open the DevTools.
-    // mainWindow.webContents.openDevTools()
+  // Open the DevTools.
+  // mainWindow.webContents.openDevTools()
 
-    // Emitted when the window is closed.
-    mainWindow.on('closed', function () {
-      // Dereference the window object, usually you would store windows
-      // in an array if your app supports multi windows, this is the time
-      // when you should delete the corresponding element.
-      mainWindow = null
-    })
+  // Emitted when the window is closed.
+  mainWindow.on('closed', function () {
+    // Dereference the window object, usually you would store windows
+    // in an array if your app supports multi windows, this is the time
+    // when you should delete the corresponding element.
+    mainWindow = null
+  })
 }
 
 // This method will be called when Electron has finished
@@ -54,25 +57,40 @@ app.on('activate', function () {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
 
-ipc.on('update-notify-value', function (event, arg) {
-    console.log('notification received:' + arg);
+ipc.on('select-gallery-images', function (event, eventData) {
+  console.log('\nEVENT: select-gallery-images');
+  console.log('eventData: ' + eventData);
 
-    console.log('finding images');
-    var directoryPath = './test/sample_images';
-    try {
-      fs.readdir(directoryPath, function(err, items) {
-        console.log(items);
+  console.log('selecting images');
+  var galleryFolder = eventData['galleryFolder'];
 
-        var imgData = {
-          path: directoryPath,
-          filenames: items
-        }
-        mainWindow.webContents.send('mainData', imgData);
-        console.log('response sent:');
+  try {
+    fs.readdir(galleryFolder, function(err, filenames) {
+      console.log(filenames);
+
+      mainWindow.webContents.send('gallery-images-selected', {
+        'galleryFolder': galleryFolder,
+        'imageFilenames': filenames
       });
-    }
-    catch (err) {
-      console.log(err);
-    }
+      console.log('TRIGGERED EVENT: gallery-images-selected');
+    });
+  }
+  catch (err) {
+    console.log(err);
+  }
+})
 
+ipc.on('gallery-loaded', function (event, eventData) {
+  console.log('\nEVENT: gallery-loaded');
+  console.log('eventData: ' + eventData);
+
+  try {
+    mainWindow.webContents.send('init-gallery', {
+      'defaultFolder': defaultFolder
+    });
+    console.log('TRIGGERED EVENT: init-gallery');
+  }
+  catch (err) {
+    console.log(err);
+  }
 })
