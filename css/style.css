@@ -3,7 +3,7 @@
 }
 
 .logs {
-  display: none; //show this to view logs
+  /* display: none; //show this to view logs */
 
   border: 1px solid #ADFF2F;
   padding-top: 5px;
