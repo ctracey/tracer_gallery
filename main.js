@@ -2,6 +2,7 @@
 const {app, BrowserWindow} = require('electron')
 const path = require('path')
 const ipc = require('electron').ipcMain
+const fs = require('fs')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -55,5 +56,23 @@ app.on('activate', function () {
 
 ipc.on('update-notify-value', function (event, arg) {
     console.log('notification received:' + arg);
-    mainWindow.webContents.send('mainData', 'MAINMAINMAIN')
+
+    console.log('finding images');
+    var directoryPath = './test/sample_images';
+    try {
+      fs.readdir(directoryPath, function(err, items) {
+        console.log(items);
+
+        var imgData = {
+          path: directoryPath,
+          filenames: items
+        }
+        mainWindow.webContents.send('mainData', imgData);
+        console.log('response sent:');
+      });
+    }
+    catch (err) {
+      console.log(err);
+    }
+
 })

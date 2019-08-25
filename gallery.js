@@ -21,18 +21,18 @@ $(() => {
   var mainData;
   ipc.on('mainData', function (event, arg) {
     $('#logs').append('<br/>main data received:' + arg);
-    // mainData = Number(arg);
-    // targetPrice.innerHTML = '$'+mainData.toLocaleString('en')
+
+    var path = arg['path'];
+    $('#logs').append('<br/>path:' + path);
+
+    //load images
+    for (var i=0; i<arg['filenames'].length; i++) {
+      var imageFilename = arg['filenames'][i];
+      $('#logs').append('<br/>image:' + imageFilename);
+
+      imagePath = path + '/' + imageFilename;
+      $('#gallery_container').append("<img style='width:100%' src='" + imagePath + "'/>");
+    }
   })
-
-
-  $('#logs').append("<li>gallery js test</li>");
-  //Add sample images
-  $('#gallery_container').append("<img style='width:100%' src='./test/sample_images/sample1.png'/>");
-  $('#gallery_container').append("<img style='width:100%' src='./test/sample_images/sample2.jpg'/>");
-  $('#gallery_container').append("<img style='width:100%' src='./test/sample_images/sample3.jpg'/>");
-  $('#gallery_container').append("<img style='width:100%' src='./test/sample_images/sample4.jpg'/>");
-  $('#gallery_container').append("<img style='width:100%' src='./test/sample_images/sample5.jpg'/>");
-  $('#gallery_container').append("<img style='width:100%' src='./test/sample_images/sample6.jpg'/>");
 })
 
