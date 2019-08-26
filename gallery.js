@@ -17,12 +17,8 @@ $(() => {
   const updateButton = document.getElementById('updateButton')
   updateButton.addEventListener('click', function () {
     log('button clicked');
-
-    var galleryFolder = $('#gallery-folder').val();
-    log('dir: ' + galleryFolder);
-
     ipc.send('select-gallery-images', {
-      'galleryFolder': galleryFolder
+      'galleryFolder': galleryFolder()
     })
     logEventTriggered('select-gallery-images')
   })
@@ -33,6 +29,8 @@ $(() => {
     var galleryPath = eventData['galleryFolder'];
     log('galleryPath:' + galleryPath);
 
+    hideSettingsControls()
+
     //display new images
     $('#gallery_container').empty();
     for (var i=0; i<eventData['imageFilenames'].length; i++) {
@@ -41,15 +39,45 @@ $(() => {
       log('imagePath:' + imagePath);
       $('#gallery_container').append("<img style='width:100%' src='" + imagePath + "'/>");
     }
+
+    refreshGallery(ipc)
   })
 
   ipc.on('init-gallery', function (event, eventData) {
     logEventReceived('init-gallery received', eventData)
 
-    var galleryDefaultFolder = eventData['defaultFolder'];
-    $('#gallery-folder').val(galleryDefaultFolder);
+    $('#gallery-folder').val(eventData['defaultFolder']);
+    $('#refresh-period').val(eventData['refreshPeriod']);
   })
 })
+
+function hideSettingsControls() {
+  log('hiding settings')
+  $('#settings-container').hide()
+}
+
+function refreshGallery(ipc) {
+    setTimeout(function(){
+      ipc.send('select-gallery-images', {
+        'galleryFolder': galleryFolder()
+      })
+      logEventTriggered('select-gallery-images')
+    }, refreshPeriod());
+}
+
+function galleryFolder() {
+  var galleryFolder = $('#gallery-folder').val();
+  log('dir: ' + galleryFolder);
+
+  return galleryFolder
+}
+
+function refreshPeriod() {
+  var refreshPeriod = $('#refresh-period').val();
+  log('refresh period: ' + refreshPeriod);
+
+  return refreshPeriod
+}
 
 function logEventReceived(eventName, eventData) {
   log('<br/>EVENT: ' + eventName);

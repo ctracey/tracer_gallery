@@ -5,6 +5,7 @@ const ipc = require('electron').ipcMain
 const fs = require('fs')
 
 const defaultFolder = './test/sample_images'
+const refreshPeriod = '60000'
 const defaultGallerySetSize = 12
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -91,7 +92,8 @@ ipc.on('gallery-loaded', function (event, eventData) {
 
   try {
     mainWindow.webContents.send('init-gallery', {
-      'defaultFolder': defaultFolder
+      'defaultFolder': defaultFolder,
+      'refreshPeriod': refreshPeriod
     });
     logEventTriggered('init-gallery')
   }
