@@ -5,6 +5,7 @@ const ipc = require('electron').ipcMain
 const fs = require('fs')
 
 const defaultFolder = './test/sample_images'
+const defaultGallerySetSize = 12
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -68,9 +69,15 @@ ipc.on('select-gallery-images', function (event, eventData) {
     fs.readdir(galleryFolder, function(err, filenames) {
       console.log(filenames);
 
+      var selectedImages = [];
+      var setSize = filenames.length < defaultGallerySetSize ? filenames.length : defaultGallerySetSize;
+      for (var i=0; i<setSize; i++) {
+        selectedImages.push(filenames[i]);
+      }
+
       mainWindow.webContents.send('gallery-images-selected', {
         'galleryFolder': galleryFolder,
-        'imageFilenames': filenames
+        'imageFilenames': selectedImages
       });
       console.log('TRIGGERED EVENT: gallery-images-selected');
     });
