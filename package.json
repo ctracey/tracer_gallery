@@ -1,6 +1,6 @@
 {
   "name": "tracer-gallery",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "An image folder scroller gallery",
   "main": "main.js",
   "scripts": {

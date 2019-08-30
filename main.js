@@ -137,7 +137,7 @@ function selectRandomImages(filenames, setSize) {
   while (selectedImages.length < setSize && index < shuffledIndexes.length) {
     //select valid images in shuffled order
     var imageFilename = filenames[shuffledIndexes[index]]
-      if (imageFilename.match(/\.(gif|jpg|jpeg|tiff|png)$/) != null) {
+      if (imageFilename.match(/\.(gif|jpg|jpeg|tiff|png|GIF|JPG|JPEG|TIFF|PNG)$/) != null) {
         selectedImages.push(filenames[shuffledIndexes[index]]);
       }
     index++;
