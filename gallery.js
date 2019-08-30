@@ -1,12 +1,18 @@
+const EVENT_INIT_GALLERY = 'init-gallery'
+const EVENT_GALLERY_LOADED = 'gallery-loaded'
+const EVENT_SAVE_PREFERENCES = 'save-preferences'
+const EVENT_SELECT_GALLERY_IMAGES = 'select-gallery-images'
+const EVENT_GALLERY_IMAGES_SELECTED = 'gallery-images-selected'
+
 // Run this function after the page has loaded
 $(() => {
-  log('gallery start')
+  log('load gallery')
 
   let ipc
   try {
     ipc = require('electron').ipcRenderer;
-    ipc.send('gallery-loaded', null)
-    logEventTriggered('gallery-loaded')
+    ipc.send(EVENT_GALLERY_LOADED, null)
+    logEventTriggered(EVENT_GALLERY_LOADED)
     log('setup ipc');
   } catch (err) {
     log('ERROR: ' + err);
@@ -16,15 +22,19 @@ $(() => {
 
   const updateButton = document.getElementById('updateButton')
   updateButton.addEventListener('click', function () {
-    log('button clicked');
-    ipc.send('select-gallery-images', {
+    ipc.send(EVENT_SAVE_PREFERENCES, {
+      'currentPreferences': currentPreferences()
+    })
+    logEventTriggered(EVENT_SAVE_PREFERENCES)
+
+    ipc.send(EVENT_SELECT_GALLERY_IMAGES, {
       'galleryFolder': galleryFolder()
     })
-    logEventTriggered('select-gallery-images')
+    logEventTriggered(EVENT_SELECT_GALLERY_IMAGES)
   })
 
-  ipc.on('gallery-images-selected', function (event, eventData) {
-    logEventReceived('gallery-images-selected', eventData)
+  ipc.on(EVENT_GALLERY_IMAGES_SELECTED, function (event, eventData) {
+    logEventReceived(EVENT_GALLERY_IMAGES_SELECTED, eventData)
 
     var galleryPath = eventData['galleryFolder'];
     log('galleryPath:' + galleryPath);
@@ -43,8 +53,8 @@ $(() => {
     refreshGallery(ipc)
   })
 
-  ipc.on('init-gallery', function (event, eventData) {
-    logEventReceived('init-gallery received', eventData)
+  ipc.on(EVENT_INIT_GALLERY, function (event, eventData) {
+    logEventReceived(EVENT_INIT_GALLERY, eventData)
 
     $('#gallery-folder').val(eventData['defaultFolder']);
     $('#refresh-period').val(eventData['refreshPeriod']);
@@ -58,25 +68,28 @@ function hideSettingsControls() {
 
 function refreshGallery(ipc) {
     setTimeout(function(){
-      ipc.send('select-gallery-images', {
+      ipc.send(EVENT_SELECT_GALLERY_IMAGES, {
         'galleryFolder': galleryFolder()
       })
-      logEventTriggered('select-gallery-images')
+      logEventTriggered(EVENT_SELECT_GALLERY_IMAGES)
     }, refreshPeriod());
 }
 
-function galleryFolder() {
-  var galleryFolder = $('#gallery-folder').val();
-  log('dir: ' + galleryFolder);
+function currentPreferences() {
+  var preferences = {
+    'galleryFolder': galleryFolder(),
+    'refreshPeriod': refreshPeriod()
+  }
 
-  return galleryFolder
+  return preferences
+}
+
+function galleryFolder() {
+  return $('#gallery-folder').val();
 }
 
 function refreshPeriod() {
-  var refreshPeriod = $('#refresh-period').val();
-  log('refresh period: ' + refreshPeriod);
-
-  return refreshPeriod
+  return $('#refresh-period').val();
 }
 
 function logEventReceived(eventName, eventData) {
