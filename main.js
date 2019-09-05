@@ -7,7 +7,8 @@ const fs = require('fs')
 const PREFERENCES_FILE_PATH = app.getAppPath() + '/preferences/preferences.json'
 const DEFAULT_FOLDER = './test/sample_images'
 const DEFAULT_REFRESH_PERIOD = '60000'
-const defaultGallerySetSize = 12
+const DEFAULT_GALLERY_SET_SIZE = 12
+const DEFAULT_NUM_COLUMNS = 1
 
 const EVENT_INIT_GALLERY = 'init-gallery'
 const EVENT_GALLERY_LOADED = 'gallery-loaded'
@@ -78,11 +79,12 @@ ipc.on(EVENT_SELECT_GALLERY_IMAGES, function (event, eventData) {
       console.log(filenames);
 
       //check if enough images are in folder
-      var setSize = filenames.length < defaultGallerySetSize ? filenames.length : defaultGallerySetSize;
+      var setSize = filenames.length < DEFAULT_GALLERY_SET_SIZE ? filenames.length : DEFAULT_GALLERY_SET_SIZE;
       //select random images from folder
       var selectedImages = selectRandomImages(filenames, setSize)
 
       mainWindow.webContents.send(EVENT_GALLERY_IMAGES_SELECTED, {
+        'containerId': eventData['containerId'],
         'galleryFolder': galleryFolder,
         'imageFilenames': selectedImages
       });
@@ -103,6 +105,7 @@ ipc.on(EVENT_GALLERY_LOADED, function (event, eventData) {
     console.log('Preferences loaded: ' + JSON.stringify(recentPreferences))
     initialPreferences['galleryFolder'] = recentPreferences != null ? recentPreferences['galleryFolder'] : DEFAULT_FOLDER
     initialPreferences['refreshPeriod'] = recentPreferences != null ? recentPreferences['refreshPeriod'] : DEFAULT_REFRESH_PERIOD
+    initialPreferences['numColumns'] = recentPreferences != null ? recentPreferences['numColumns'] : DEFAULT_NUM_COLUMNS
   }
 
   console.log('initial prefs: ' + JSON.stringify(initialPreferences))
@@ -110,7 +113,8 @@ ipc.on(EVENT_GALLERY_LOADED, function (event, eventData) {
   try {
     mainWindow.webContents.send(EVENT_INIT_GALLERY, {
       'defaultFolder': initialPreferences['galleryFolder'],
-      'refreshPeriod': initialPreferences['refreshPeriod']
+      'refreshPeriod': initialPreferences['refreshPeriod'],
+      'numColumns': initialPreferences['numColumns']
     });
     logEventTriggered(EVENT_INIT_GALLERY)
   }
@@ -212,7 +216,7 @@ function defaultPreferences() {
 
 function logEventReceived(eventName, eventData) {
   console.log('\nEVENT: ' + eventName);
-  console.log('eventData: ' + eventData);
+  console.log('eventData: ' + JSON.stringify(eventData))
 }
 
 function logEventTriggered(eventName) {

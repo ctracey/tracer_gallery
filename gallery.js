@@ -19,18 +19,22 @@ $(() => {
   }
 
   log('gallery loaded');
+  var galleryPaused = false
 
   const updateButton = document.getElementById('updateButton')
   updateButton.addEventListener('click', function () {
-    ipc.send(EVENT_SAVE_PREFERENCES, {
-      'currentPreferences': currentPreferences()
-    })
-    logEventTriggered(EVENT_SAVE_PREFERENCES)
+    savePreferences(ipc, currentPreferences());
 
-    ipc.send(EVENT_SELECT_GALLERY_IMAGES, {
-      'galleryFolder': galleryFolder()
-    })
-    logEventTriggered(EVENT_SELECT_GALLERY_IMAGES)
+    setupColumns(currentPreferences()['numColumns']);
+    var columns = $('.gallery-column')
+    for (var i=0; i < columns.length; i++) {
+      selectGalleryImages(ipc, columns[i].id, galleryFolder())
+    }
+  })
+
+  const showSettingsAction = document.getElementById('settings-container-hidden')
+  showSettingsAction.addEventListener('click', function () {
+    showSettingsControls()
   })
 
   ipc.on(EVENT_GALLERY_IMAGES_SELECTED, function (event, eventData) {
@@ -40,17 +44,9 @@ $(() => {
     log('galleryPath:' + galleryPath);
 
     hideSettingsControls()
-
-    //display new images
-    $('#gallery_container').empty();
-    for (var i=0; i<eventData['imageFilenames'].length; i++) {
-      var imageFilename = eventData['imageFilenames'][i];
-      imagePath = galleryPath + '/' + imageFilename;
-      log('imagePath:' + imagePath);
-      $('#gallery_container').append("<img style='width:100%' src='" + imagePath + "'/>");
-    }
-
-    refreshGallery(ipc)
+    var galleryId = eventData['containerId']
+    displayImages(galleryId, eventData, galleryPath)
+    refreshGallery(ipc, galleryId)
   })
 
   ipc.on(EVENT_INIT_GALLERY, function (event, eventData) {
@@ -58,19 +54,87 @@ $(() => {
 
     $('#gallery-folder').val(eventData['defaultFolder']);
     $('#refresh-period').val(eventData['refreshPeriod']);
+    $('#num-columns').val(eventData['numColumns']);
+
+    var numColumns = eventData['numColumns']
+    setupColumns(numColumns);
   })
 })
 
-function hideSettingsControls() {
-  log('hiding settings')
-  $('#settings-container').hide()
+function savePreferences(ipc, currentPreferences) {
+  ipc.send(EVENT_SAVE_PREFERENCES, {
+    'currentPreferences': currentPreferences
+  })
+  logEventTriggered(EVENT_SAVE_PREFERENCES)
 }
 
-function refreshGallery(ipc) {
+function setupColumns(numColumns) {
+  log('Setting gallery columns to:' + numColumns)
+
+  var galleryWidth = 100 / numColumns
+  log('galleryWidth: ' + galleryWidth)
+
+  $('#galleries-container').empty()
+  for (var i=0; i < numColumns; i++) {
+    log('add gallery container')
+    $('#galleries-container').append("<div id='gallery_container_" + i + "' class='gallery-column' style='width:" + galleryWidth + "%;'></div>")
+  }
+}
+
+function selectGalleryImages(ipc, containerId, galleryFolder) {
+  ipc.send(EVENT_SELECT_GALLERY_IMAGES, {
+    'containerId': containerId,
+    'galleryFolder': galleryFolder
+  })
+  logEventTriggered(EVENT_SELECT_GALLERY_IMAGES)
+}
+
+function displayImages(containerId, eventData, galleryPath) {
+  //display new images
+  log('display images in ' + containerId)
+  $('#' + containerId).empty();
+  for (var i=0; i<eventData['imageFilenames'].length; i++) {
+    var imageFilename = eventData['imageFilenames'][i];
+    imagePath = galleryPath + '/' + imageFilename;
+    log('imagePath:' + imagePath);
+    $('#' + containerId).append(imageHTML(imagePath));
+  }
+}
+
+function imageHTML(imagePath) {
+  return "<div class='gallery-image'><img style='width:100%' src='" + imagePath + "'/></div>"
+}
+
+function hideSettingsControls() {
+  log('hiding settings')
+  playGallery()
+  $('#settings-container').hide()
+  $('#settings-container-hidden').show()
+}
+
+function showSettingsControls() {
+  log('hiding settings')
+  pauseGallery()
+  $('#settings-container').show()
+  $('#settings-container-hidden').hide()
+}
+
+function pauseGallery() {
+  galleryPaused = true
+}
+
+function playGallery() {
+  galleryPaused = false
+}
+
+function refreshGallery(ipc, galleryId) {
     setTimeout(function(){
-      ipc.send(EVENT_SELECT_GALLERY_IMAGES, {
-        'galleryFolder': galleryFolder()
-      })
+      if (!galleryPaused) {
+        ipc.send(EVENT_SELECT_GALLERY_IMAGES, {
+          'containerId': galleryId,
+          'galleryFolder': galleryFolder()
+        })
+      }
       logEventTriggered(EVENT_SELECT_GALLERY_IMAGES)
     }, refreshPeriod());
 }
@@ -78,7 +142,8 @@ function refreshGallery(ipc) {
 function currentPreferences() {
   var preferences = {
     'galleryFolder': galleryFolder(),
-    'refreshPeriod': refreshPeriod()
+    'refreshPeriod': refreshPeriod(),
+    'numColumns': numColumns()
   }
 
   return preferences
@@ -92,9 +157,13 @@ function refreshPeriod() {
   return $('#refresh-period').val();
 }
 
+function numColumns() {
+  return $('#num-columns').val();
+}
+
 function logEventReceived(eventName, eventData) {
   log('<br/>EVENT: ' + eventName);
-  log('eventData: ' + eventData);
+  log('eventData: ' + JSON.stringify(eventData))
 }
 
 function logEventTriggered(eventName) {
