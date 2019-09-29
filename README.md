@@ -20,5 +20,5 @@ Packaging App
 
 ```
 npm install electron-packager -g
-electron-packager . 'tracer gallery' --platform=darwin --out=bundles
+./bin/build.sh
 ```
