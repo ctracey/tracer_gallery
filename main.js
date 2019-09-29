@@ -136,29 +136,50 @@ ipc.on(EVENT_SAVE_PREFERENCES, function (event, eventData) {
 })
 
 function setupApplicationMenu() {
-  var menu = Menu.buildFromTemplate([
-      {
-        label: 'App',
-        submenu: [
-          {label: 'Preferences...',
-            click(menuItem) {
-              logMenuItemEvent(menuItem['label'])
-              editPreferences()
-            },
-            accelerator: 'Cmd+,'
-          },
-          {type: 'separator'},
-          {label: 'Quit',
-            click(menuItem) {
-              logMenuItemEvent(menuItem['label'])
-              quitApplication()
-            },
-            accelerator: 'Cmd+Q'
-          }
-        ]
-      }
-  ])
+  var menuTemplate = []
+  menuTemplate.push(applicationMenuTemplate())
+  menuTemplate.push(editMenuTemplate())
+
+  var menu = Menu.buildFromTemplate(menuTemplate)
   Menu.setApplicationMenu(menu)
+}
+
+function applicationMenuTemplate() {
+  return {
+    label: 'App',
+    submenu: [
+    {label: 'Preferences...',
+      click(menuItem) {
+        logMenuItemEvent(menuItem['label'])
+          editPreferences()
+      },
+      accelerator: 'Cmd+,'
+    },
+    {type: 'separator'},
+    {label: 'Quit',
+      click(menuItem) {
+        logMenuItemEvent(menuItem['label'])
+          quitApplication()
+      },
+      accelerator: 'Cmd+Q'
+    }
+    ]
+  }
+}
+
+function editMenuTemplate() {
+  return {
+    label: "Edit",
+    submenu: [
+    { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },
+    { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" },
+    { type: "separator" },
+    { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" },
+    { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" },
+    { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" },
+    { label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:" }
+    ]
+  }
 }
 
 function editPreferences() {
