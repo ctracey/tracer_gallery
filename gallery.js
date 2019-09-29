@@ -1,6 +1,7 @@
 const EVENT_INIT_GALLERY = 'init-gallery'
 const EVENT_GALLERY_LOADED = 'gallery-loaded'
 const EVENT_SAVE_PREFERENCES = 'save-preferences'
+const EVENT_EDIT_PREFERENCES = 'edit-preferences'
 const EVENT_SELECT_GALLERY_IMAGES = 'select-gallery-images'
 const EVENT_GALLERY_IMAGES_SELECTED = 'gallery-images-selected'
 
@@ -32,11 +33,6 @@ $(() => {
     }
   })
 
-  const showSettingsAction = document.getElementById('settings-container-hidden')
-  showSettingsAction.addEventListener('click', function () {
-    showSettingsControls()
-  })
-
   ipc.on(EVENT_GALLERY_IMAGES_SELECTED, function (event, eventData) {
     logEventReceived(EVENT_GALLERY_IMAGES_SELECTED, eventData)
 
@@ -58,6 +54,11 @@ $(() => {
 
     var numColumns = eventData['numColumns']
     setupColumns(numColumns);
+  })
+
+  ipc.on(EVENT_EDIT_PREFERENCES, function (event, eventData) {
+    logEventReceived(EVENT_EDIT_PREFERENCES, eventData)
+    showSettingsControls()
   })
 })
 
@@ -109,14 +110,12 @@ function hideSettingsControls() {
   log('hiding settings')
   playGallery()
   $('#settings-container').hide()
-  $('#settings-container-hidden').show()
 }
 
 function showSettingsControls() {
   log('hiding settings')
   pauseGallery()
   $('#settings-container').show()
-  $('#settings-container-hidden').hide()
 }
 
 function pauseGallery() {
@@ -163,7 +162,7 @@ function numColumns() {
 
 function logEventReceived(eventName, eventData) {
   log('<br/>EVENT: ' + eventName);
-  log('eventData: ' + JSON.stringify(eventData))
+  log('&#9;eventData: ' + JSON.stringify(eventData))
 }
 
 function logEventTriggered(eventName) {

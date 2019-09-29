@@ -1,5 +1,5 @@
 //Modules to control application life and create native browser window
-const {app, BrowserWindow} = require('electron')
+const {app, BrowserWindow, Menu} = require('electron')
 const path = require('path')
 const ipc = require('electron').ipcMain
 const fs = require('fs')
@@ -13,8 +13,10 @@ const DEFAULT_NUM_COLUMNS = 1
 const EVENT_INIT_GALLERY = 'init-gallery'
 const EVENT_GALLERY_LOADED = 'gallery-loaded'
 const EVENT_SAVE_PREFERENCES = 'save-preferences'
+const EVENT_EDIT_PREFERENCES = 'edit-preferences'
 const EVENT_SELECT_GALLERY_IMAGES = 'select-gallery-images'
 const EVENT_GALLERY_IMAGES_SELECTED = 'gallery-images-selected'
+const EVENT_QUIT_APPLICATION = 'quit-application'
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -44,6 +46,9 @@ function createWindow () {
     // when you should delete the corresponding element.
     mainWindow = null
   })
+
+  //Setup menu items
+  setupApplicationMenu()
 }
 
 // This method will be called when Electron has finished
@@ -128,8 +133,41 @@ ipc.on(EVENT_SAVE_PREFERENCES, function (event, eventData) {
 
   var currentPreferences = eventData['currentPreferences']
   savePreferences(currentPreferences)
-
 })
+
+function setupApplicationMenu() {
+  var menu = Menu.buildFromTemplate([
+      {
+        label: 'App',
+        submenu: [
+          {label: 'Preferences...',
+            click(menuItem) {
+              logMenuItemEvent(menuItem['label'])
+              editPreferences()
+            },
+            accelerator: 'Cmd+,'
+          },
+          {type: 'separator'},
+          {label: 'Quit',
+            click(menuItem) {
+              logMenuItemEvent(menuItem['label'])
+              quitApplication()
+            },
+            accelerator: 'Cmd+Q'
+          }
+        ]
+      }
+  ])
+  Menu.setApplicationMenu(menu)
+}
+
+function editPreferences() {
+  mainWindow.webContents.send(EVENT_EDIT_PREFERENCES, {})
+}
+
+function quitApplication() {
+  app.quit()
+}
 
 function selectRandomImages(filenames, setSize) {
   var index = 0;
@@ -216,7 +254,11 @@ function defaultPreferences() {
 
 function logEventReceived(eventName, eventData) {
   console.log('\nEVENT: ' + eventName);
-  console.log('eventData: ' + JSON.stringify(eventData))
+  console.log('\teventData: ' + JSON.stringify(eventData))
+}
+
+function logMenuItemEvent(menuItem) {
+  logEventReceived('menu item selected', {'menuItem': menuItem})
 }
 
 function logEventTriggered(eventName) {
