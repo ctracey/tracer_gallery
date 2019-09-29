@@ -22,8 +22,8 @@ $(() => {
   log('gallery loaded');
   var galleryPaused = false
 
-  const updateButton = document.getElementById('updateButton')
-  updateButton.addEventListener('click', function () {
+  const exhibitButton = document.getElementById('exhibitButton')
+  exhibitButton.addEventListener('click', function () {
     savePreferences(ipc, currentPreferences());
     startGallery(ipc, currentPreferences()['numColumns'])
   })
