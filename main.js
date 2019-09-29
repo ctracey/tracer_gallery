@@ -6,7 +6,7 @@ const fs = require('fs')
 
 const PREFERENCES_FILE_PATH = app.getAppPath() + '/preferences/preferences.json'
 const DEFAULT_FOLDER = './test/sample_images'
-const DEFAULT_REFRESH_PERIOD = '60000'
+const DEFAULT_REFRESH_INTERVAL = '60'
 const DEFAULT_GALLERY_SET_SIZE = 12
 const DEFAULT_NUM_COLUMNS = 1
 
@@ -109,7 +109,7 @@ ipc.on(EVENT_GALLERY_LOADED, function (event, eventData) {
   if (recentPreferences != null) {
     console.log('Preferences loaded: ' + JSON.stringify(recentPreferences))
     initialPreferences['galleryFolder'] = recentPreferences != null ? recentPreferences['galleryFolder'] : DEFAULT_FOLDER
-    initialPreferences['refreshPeriod'] = recentPreferences != null ? recentPreferences['refreshPeriod'] : DEFAULT_REFRESH_PERIOD
+    initialPreferences['refreshInterval'] = recentPreferences != null ? recentPreferences['refreshInterval'] : DEFAULT_REFRESH_INTERVAL
     initialPreferences['numColumns'] = recentPreferences != null ? recentPreferences['numColumns'] : DEFAULT_NUM_COLUMNS
   }
 
@@ -118,7 +118,7 @@ ipc.on(EVENT_GALLERY_LOADED, function (event, eventData) {
   try {
     mainWindow.webContents.send(EVENT_INIT_GALLERY, {
       'defaultFolder': initialPreferences['galleryFolder'],
-      'refreshPeriod': initialPreferences['refreshPeriod'],
+      'refreshInterval': initialPreferences['refreshInterval'],
       'numColumns': initialPreferences['numColumns']
     });
     logEventTriggered(EVENT_INIT_GALLERY)
@@ -248,7 +248,7 @@ function loadRecentPreferences() {
 function defaultPreferences() {
   return {
     'galleryFolder': DEFAULT_FOLDER,
-    'refreshPeriod': DEFAULT_REFRESH_PERIOD
+    'refreshInterval': DEFAULT_REFRESH_INTERVAL
   }
 }
 

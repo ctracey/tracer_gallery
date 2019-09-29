@@ -44,7 +44,7 @@ $(() => {
     logEventReceived(EVENT_INIT_GALLERY, eventData)
 
     $('#gallery-folder').val(eventData['defaultFolder']);
-    $('#refresh-period').val(eventData['refreshPeriod']);
+    $('#refresh-interval').val(eventData['refreshInterval']);
     $('#num-columns').val(eventData['numColumns']);
 
     startGallery(ipc, eventData['numColumns'])
@@ -141,13 +141,13 @@ function refreshGallery(ipc, galleryId) {
         })
       }
       logEventTriggered(EVENT_SELECT_GALLERY_IMAGES)
-    }, refreshPeriod());
+    }, refreshInterval() * 1000) //convert preferences as seconds to milliseconds
 }
 
 function currentPreferences() {
   var preferences = {
     'galleryFolder': galleryFolder(),
-    'refreshPeriod': refreshPeriod(),
+    'refreshInterval': refreshInterval(),
     'numColumns': numColumns()
   }
 
@@ -158,8 +158,8 @@ function galleryFolder() {
   return $('#gallery-folder').val();
 }
 
-function refreshPeriod() {
-  return $('#refresh-period').val();
+function refreshInterval() {
+  return $('#refresh-interval').val()
 }
 
 function numColumns() {
