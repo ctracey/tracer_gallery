@@ -25,12 +25,7 @@ $(() => {
   const updateButton = document.getElementById('updateButton')
   updateButton.addEventListener('click', function () {
     savePreferences(ipc, currentPreferences());
-
-    setupColumns(currentPreferences()['numColumns']);
-    var columns = $('.gallery-column')
-    for (var i=0; i < columns.length; i++) {
-      selectGalleryImages(ipc, columns[i].id, galleryFolder())
-    }
+    startGallery(ipc, currentPreferences()['numColumns'])
   })
 
   ipc.on(EVENT_GALLERY_IMAGES_SELECTED, function (event, eventData) {
@@ -52,8 +47,7 @@ $(() => {
     $('#refresh-period').val(eventData['refreshPeriod']);
     $('#num-columns').val(eventData['numColumns']);
 
-    var numColumns = eventData['numColumns']
-    setupColumns(numColumns);
+    startGallery(ipc, eventData['numColumns'])
   })
 
   ipc.on(EVENT_EDIT_PREFERENCES, function (event, eventData) {
@@ -61,6 +55,18 @@ $(() => {
     showSettingsControls()
   })
 })
+
+function startGallery(ipc, numColumns) {
+  setupColumns(numColumns);
+  loadGalleryImages(ipc)
+}
+
+function loadGalleryImages(ipc) {
+  var columns = $('.gallery-column')
+  for (var i=0; i < columns.length; i++) {
+    selectGalleryImages(ipc, columns[i].id, galleryFolder())
+  }
+}
 
 function savePreferences(ipc, currentPreferences) {
   ipc.send(EVENT_SAVE_PREFERENCES, {
