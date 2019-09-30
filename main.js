@@ -137,49 +137,69 @@ ipc.on(EVENT_SAVE_PREFERENCES, function (event, eventData) {
 
 function setupApplicationMenu() {
   var menuTemplate = []
-  menuTemplate.push(applicationMenuTemplate())
+
+  menuTemplate.push(appMenuTemplate())
   menuTemplate.push(editMenuTemplate())
+  menuTemplate.push(viewMenuTemplate())
+  menuTemplate.push(windowMenuTemplate())
 
   var menu = Menu.buildFromTemplate(menuTemplate)
   Menu.setApplicationMenu(menu)
 }
 
-function applicationMenuTemplate() {
+function appMenuTemplate() {
   return {
-    label: 'App',
+    label: app.getName(),
     submenu: [
-    {label: 'Preferences...',
-      click(menuItem) {
-        logMenuItemEvent(menuItem['label'])
-          editPreferences()
-      },
-      accelerator: 'Cmd+,'
-    },
-    {type: 'separator'},
-    {label: 'Quit',
-      click(menuItem) {
-        logMenuItemEvent(menuItem['label'])
-          quitApplication()
-      },
-      accelerator: 'Cmd+Q'
-    }
+      {role: 'about'},
+      {type: 'separator'},
+
+      preferencesMenuItem(),
+      {type: 'separator'},
+
+      {role: 'services'},
+      {type: 'separator'},
+
+      {role: 'hide'},
+      {role: 'hideothers'},
+      {role: 'unhide'},
+      {type: 'separator'},
+
+      quitMenuItem()
     ]
   }
 }
 
-function editMenuTemplate() {
-  return {
-    label: "Edit",
-    submenu: [
-    { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },
-    { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" },
-    { type: "separator" },
-    { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" },
-    { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" },
-    { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" },
-    { label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:" }
-    ]
+function preferencesMenuItem() {
+  return {label: 'Preferences...',
+    click(menuItem) {
+      logMenuItemEvent(menuItem['label'])
+        editPreferences()
+    },
+    accelerator: 'Cmd+,'
   }
+}
+
+function quitMenuItem() {
+  return {label: 'Quit',
+    click(menuItem) {
+      logMenuItemEvent(menuItem['label'])
+        quitApplication()
+    },
+    accelerator: 'Cmd+Q'
+  }
+}
+
+function editMenuTemplate() {
+  return {role: 'editMenu'}
+}
+
+function viewMenuTemplate() {
+  return {role: 'viewMenu'}
+}
+
+function windowMenuTemplate() {
+  return {role: 'windowMenu'}
 }
 
 function editPreferences() {
