@@ -7,6 +7,7 @@ const {app, BrowserWindow, Menu} = require('electron')
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
+let eventChannel
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -17,7 +18,7 @@ app.on('ready', init)
 app.on('window-all-closed', function () {
   // On macOS it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
-  if (process.platform !== 'darwin') quitApplication()
+  if (process.platform !== 'darwin') app.quit()
 })
 
 app.on('activate', function () {
@@ -30,16 +31,19 @@ app.on('activate', function () {
 // code. You can also put them in separate files and require them here.
 
 function init() {
-  createWindow()
+  mainWindow = createWindow()
+  eventChannel = initEventChannel(mainWindow)
 
-  var curator = require("./app/curator")(app, eventChannel())
-  curator.handleEvents(require('electron').ipcMain)
+  createApplicationMenu(eventChannel)
+
+  var curator = require("./app/curator")(app, eventChannel)
+  curator.handleEvents()
 }
 
 function createWindow () {
   // Create the browser window.
-  console.log('create main window');
-  mainWindow = new BrowserWindow({
+  logger.log('create new window');
+  newWindow = new BrowserWindow({
     width: 250,
     height: 800,
     webPreferences: {
@@ -48,29 +52,32 @@ function createWindow () {
   })
 
   // and load the index.html of the app.
-  mainWindow.loadFile('index.html')
+  newWindow.loadFile('index.html')
 
   // Open the DevTools.
-  // mainWindow.webContents.openDevTools()
+  // newWindow.webContents.openDevTools()
 
   // Emitted when the window is closed.
-  mainWindow.on('closed', function () {
+  newWindow.on('closed', function () {
     // Dereference the window object, usually you would store windows
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
-    mainWindow = null
+    newWindow = null
   })
 
+  return newWindow
+}
+
+function createApplicationMenu(eventChannel) {
   //Setup menu items
-  var menu = require("./app/menu")(app, eventChannel())
-  menu.setupApplicationMenu()
+  var menu = require("./app/menu")(app, eventChannel)
+  menu.createApplicationMenu()
 }
 
-function eventChannel() {
-  return require("./app/eventChannel")(mainWindow.webContents)
-}
+function initEventChannel(_window) {
+  var inboundEventChannel = require('electron').ipcMain
+  var outboundEventChannel = _window.webContents
 
-function quitApplication() {
-  app.quit()
+  return require("./app/eventChannel")("mainEventChannel", inboundEventChannel, outboundEventChannel)
 }
 

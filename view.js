@@ -1,18 +1,15 @@
-var logger = require("./app/viewLogger")
-const EVENTS = require("./app/events")
+var logger = require("./app/logger")
 
 // Run this function after the page has loaded
-// TODO: refactor with view.js and eventChannel
 
-let ipc
+let eventChannel
 
 $(() => {
   logger.log('load gallery')
 
   try {
-    ipc = require('electron').ipcRenderer;
-    eventChannel().send(EVENTS.EVENT_GALLERY_LOADED, null)
-    logger.log('setup ipc');
+    eventChannel = initEventChannel()
+    eventChannel.send(eventChannel.EVENT_GALLERY_LOADED, null)
   } catch (err) {
     logger.log('ERROR: ' + err);
   }
@@ -20,40 +17,22 @@ $(() => {
   logger.log('gallery loaded');
   var galleryPaused = false
 
-  var gallery = require("./app/gallery")(eventChannel())
-  gallery.handleEvents(ipc)
+  var gallery = require("./app/gallery")(eventChannel)
+  gallery.handleEvents()
 
   const exhibitButton = document.getElementById('exhibitButton')
   exhibitButton.addEventListener('click', function () {
-    gallery.savePreferences(ipc, currentPreferences());
-    gallery.startGallery(ipc, currentPreferences()['numColumns'])
+    gallery.savePreferences();
+    gallery.startGallery(gallery.galleryPreferences()['numColumns'])
   })
-
 })
 
-function currentPreferences() {
-  var preferences = {
-    'galleryFolder': galleryFolder(),
-    'refreshInterval': refreshInterval(),
-    'numColumns': numColumns()
-  }
+function initEventChannel() {
+  var ipc = require('electron').ipcRenderer;
 
-  return preferences
-}
+  var inboundEventChannel = ipc
+  var outboundEventChannel = ipc
 
-function galleryFolder() {
-  return $('#gallery-folder').val();
-}
-
-function refreshInterval() {
-  return $('#refresh-interval').val()
-}
-
-function numColumns() {
-  return $('#num-columns').val();
-}
-
-function eventChannel() {
-  return require("./app/eventChannel")(ipc)
+  return require("./app/eventChannel")("viewEventChannel", inboundEventChannel, outboundEventChannel)
 }
 

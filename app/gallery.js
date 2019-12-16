@@ -1,20 +1,20 @@
 var logger = require("./logger")
 
-module.exports = function(mainEventChannel) {
-  init(mainEventChannel)
+module.exports = function(_eventChannel) {
+  init(_eventChannel)
 
     var module = {
 
-      handleEvents: function(mainIpc) {
-        handleEvents(mainIpc)
+      handleEvents: function() {
+        handleEvents()
       },
 
-      startGallery: function(ipc, numColumns) {
-        startGallery(ipc, numColumns)
+      startGallery: function(numColumns) {
+        startGallery(numColumns)
       },
 
-      savePreferences: function(ipc, galleryPreferences) {
-        savePreferences(ipc, galleryPreferences)
+      savePreferences: function() {
+        savePreferences()
       },
 
     }
@@ -24,54 +24,66 @@ module.exports = function(mainEventChannel) {
 
 let eventChannel
 
-function init(mainEventChannel) {
-  eventChannel = mainEventChannel
+function init(_eventChannel) {
+  eventChannel = _eventChannel
 }
 
-function handleEvents(ipc) {
-  ipc.on(EVENTS.EVENT_GALLERY_IMAGES_SELECTED, function (event, eventData) {
-    logger.logEventReceived(EVENTS.EVENT_GALLERY_IMAGES_SELECTED, eventData)
-
-    var galleryPath = eventData['galleryFolder'];
-    logger.log('galleryPath:' + galleryPath);
-
-    hideSettingsControls()
-    var galleryId = eventData['containerId']
-    displayImages(galleryId, eventData, galleryPath)
-    refreshGallery(ipc, galleryId)
+function handleEvents() {
+  eventChannel.on(eventChannel.EVENT_INIT_GALLERY, function (event, eventData) {
+    handleInitGallery(event, eventData)
   })
 
-  ipc.on(EVENTS.EVENT_INIT_GALLERY, function (event, eventData) {
-    logger.logEventReceived(EVENTS.EVENT_INIT_GALLERY, eventData)
-
-    $('#gallery-folder').val(eventData['defaultFolder']);
-    $('#refresh-interval').val(eventData['refreshInterval']);
-    $('#num-columns').val(eventData['numColumns']);
-
-    startGallery(ipc, eventData['numColumns'])
+  eventChannel.on(eventChannel.EVENT_GALLERY_IMAGES_SELECTED, function (event, eventData) {
+    handleGalleryImagesSelected(event, eventData)
   })
 
-  ipc.on(EVENTS.EVENT_EDIT_PREFERENCES, function (event, eventData) {
-    logger.logEventReceived(EVENTS.EVENT_EDIT_PREFERENCES, eventData)
-    showSettingsControls()
+  eventChannel.on(eventChannel.EVENT_EDIT_PREFERENCES, function (event, eventData) {
+    handleEditPreferencesEvent(event, eventData)
   })
 }
 
-function startGallery(ipc, numColumns) {
+function handleInitGallery(event, eventData) {
+  logger.logEventReceived(eventChannel.EVENT_INIT_GALLERY, eventData)
+
+  $('#gallery-folder').val(eventData['defaultFolder']);
+  $('#refresh-interval').val(eventData['refreshInterval']);
+  $('#num-columns').val(eventData['numColumns']);
+
+  startGallery(eventData['numColumns'])
+}
+
+function handleGalleryImagesSelected(event, eventData) {
+  logger.logEventReceived(eventChannel.EVENT_GALLERY_IMAGES_SELECTED, eventData)
+
+  var galleryPath = eventData['galleryFolder'];
+  logger.log('galleryPath:' + galleryPath);
+
+  hideSettingsControls()
+  var galleryId = eventData['containerId']
+  displayImages(galleryId, eventData, galleryPath)
+  refreshGallery(galleryId)
+}
+
+function handleEditPreferencesEvent(event, eventData) {
+  logger.logEventReceived(eventChannel.EVENT_EDIT_PREFERENCES, eventData)
+  showSettingsControls()
+}
+
+function startGallery(numColumns) {
   setupColumns(numColumns);
-  loadGalleryImages(ipc)
+  loadGalleryImages()
 }
 
-function loadGalleryImages(ipc) {
+function loadGalleryImages() {
   var columns = $('.gallery-column')
   for (var i=0; i < columns.length; i++) {
-    selectGalleryImages(ipc, columns[i].id, galleryFolder())
+    selectGalleryImages(columns[i].id, galleryFolder())
   }
 }
 
-function savePreferences(ipc, galleryPreferences) {
-  eventChannel.send(EVENTS.EVENT_SAVE_PREFERENCES, {
-    'galleryPreferences': galleryPreferences
+function savePreferences() {
+  eventChannel.send(eventChannel.EVENT_SAVE_PREFERENCES, {
+    'galleryPreferences': galleryPreferences()
   })
 }
 
@@ -88,8 +100,8 @@ function setupColumns(numColumns) {
   }
 }
 
-function selectGalleryImages(ipc, containerId, galleryFolder) {
-  eventChannel.send(EVENTS.EVENT_SELECT_GALLERY_IMAGES, {
+function selectGalleryImages(containerId, galleryFolder) {
+  eventChannel.send(eventChannel.EVENT_SELECT_GALLERY_IMAGES, {
     'containerId': containerId,
     'galleryFolder': galleryFolder
   })
@@ -131,15 +143,36 @@ function playGallery() {
   galleryPaused = false
 }
 
-function refreshGallery(ipc, galleryId) {
-    setTimeout(function(){
-      if (!galleryPaused) {
-        eventChannel.send(EVENTS.EVENT_SELECT_GALLERY_IMAGES, {
-          'containerId': galleryId,
-          'galleryFolder': galleryFolder()
-        })
-      }
-      logger.logEventTriggered(EVENTS.EVENT_SELECT_GALLERY_IMAGES)
-    }, refreshInterval() * 1000) //convert galleryPreferences as seconds to milliseconds
+function refreshGallery(galleryId) {
+  setTimeout(function(){
+    if (!galleryPaused) {
+      eventChannel.send(eventChannel.EVENT_SELECT_GALLERY_IMAGES, {
+        'containerId': galleryId,
+        'galleryFolder': galleryFolder()
+      })
+    }
+    logger.logEventTriggered(eventChannel.EVENT_SELECT_GALLERY_IMAGES)
+  }, refreshInterval() * 1000) //convert galleryPreferences as seconds to milliseconds
 }
 
+function galleryPreferences() {
+  var preferences = {
+    'galleryFolder': galleryFolder(),
+    'refreshInterval': refreshInterval(),
+    'numColumns': numColumns()
+  }
+
+  return preferences
+}
+
+function galleryFolder() {
+  return $('#gallery-folder').val();
+}
+
+function refreshInterval() {
+  return $('#refresh-interval').val()
+}
+
+function numColumns() {
+  return $('#num-columns').val();
+}

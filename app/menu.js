@@ -1,13 +1,12 @@
 var logger = require("./logger")
-var EVENTS = require("./events")
 
-module.exports = function(mainApp, mainEventChannel) {
-  init(mainApp, mainEventChannel)
+module.exports = function(mainApp, _eventChannel) {
+  init(mainApp, _eventChannel)
 
   var module = {
 
-    setupApplicationMenu: function () {
-      setupApplicationMenu()
+    createApplicationMenu: function () {
+      createApplicationMenu()
     }
 
   }
@@ -18,14 +17,14 @@ module.exports = function(mainApp, mainEventChannel) {
 let app
 let eventChannel
 
-function init(mainApp, mainEventChannel) {
-  app = mainApp
-  eventChannel = mainEventChannel
+function init(_app, _eventChannel) {
+  app = _app
+  eventChannel = _eventChannel
 }
 
 const {Menu} = require('electron')
 
-function setupApplicationMenu() {
+function createApplicationMenu() {
   var menuTemplate = []
 
   menuTemplate.push(appMenuTemplate())
@@ -83,7 +82,6 @@ function preferencesMenuItem() {
 }
 
 function quitMenuItem(app) {
-  //TODO: refactor quit application
   return {label: 'Quit',
     click(menuItem) {
       logMenuItemEvent(menuItem['label'])
@@ -97,10 +95,6 @@ function editPreferences() {
   eventChannel.send(eventChannel.EVENT_EDIT_PREFERENCES, {})
 }
 
-function quitApplication(app) {
-  app.quit()
-}
-
 function logMenuItemEvent(menuItem) {
-  logger.logEventReceived(EVENTS.EVENT_MENU_ITEM_SELECTED, {'menuItem': menuItem})
+  logger.logEventReceived(eventChannel.EVENT_MENU_ITEM_SELECTED, {'menuItem': menuItem})
 }

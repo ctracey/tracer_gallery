@@ -9,13 +9,13 @@ const DEFAULT_REFRESH_INTERVAL = '60'
 const DEFAULT_GALLERY_SET_SIZE = 12
 const DEFAULT_NUM_COLUMNS = 1
 
-module.exports = function(mainApp, mainEventChannel) {
-  init(mainApp, mainEventChannel)
+module.exports = function(mainApp, _eventChannel) {
+  init(mainApp, _eventChannel)
 
   var module = {
 
-    handleEvents: function (ipc) {
-      handleEvents(ipc)
+    handleEvents: function () {
+      handleEvents()
     }
 
   }
@@ -26,76 +26,88 @@ module.exports = function(mainApp, mainEventChannel) {
 let app
 let eventChannel
 
-function init(mainApp, mainEventChannel) {
+function init(mainApp, _eventChannel) {
   app = mainApp
-  eventChannel = mainEventChannel
+  eventChannel = _eventChannel
 }
 
 function preferencesFilePath() {
   return app.getAppPath() + APP_PREFERENCES_FILE_PATH
 }
 
-function handleEvents(ipc) {
-  ipc.on(eventChannel.EVENT_SELECT_GALLERY_IMAGES, function (event, eventData) {
-    logger.logEventReceived(eventChannel.EVENT_SELECT_GALLERY_IMAGES, eventData)
-
-    logger.log('selecting images');
-    var galleryFolder = eventData['galleryFolder'];
-
-    try {
-      fs.readdir(galleryFolder, function(err, filenames) {
-        logger.log('folder images:')
-        logger.log(filenames);
-
-        //check if enough images are in folder
-        var setSize = filenames.length < DEFAULT_GALLERY_SET_SIZE ? filenames.length : DEFAULT_GALLERY_SET_SIZE;
-        //select random images from folder
-        var selectedImages = selectRandomImages(filenames, setSize)
-
-        eventChannel.send(eventChannel.EVENT_GALLERY_IMAGES_SELECTED, {
-          'containerId': eventData['containerId'],
-          'galleryFolder': galleryFolder,
-          'imageFilenames': selectedImages
-        })
-      });
-    }
-    catch (err) {
-      logger.log(err);
-    }
+function handleEvents() {
+  eventChannel.on(eventChannel.EVENT_GALLERY_LOADED, function (event, eventData) {
+    handleGalleryLoadedEvent(event, eventData)
   })
 
-  ipc.on(eventChannel.EVENT_GALLERY_LOADED, function (event, eventData) {
-    logger.logEventReceived(eventChannel.EVENT_GALLERY_LOADED, eventData)
+  eventChannel.on(eventChannel.EVENT_SELECT_GALLERY_IMAGES, function (event, eventData) {
+    handleSelectGalleryImagesEvent(event, eventData)
+  })
 
-    var initialPreferences = defaultPreferences()
-    var recentPreferences = loadRecentPreferences()
-    if (recentPreferences != null) {
-      logger.log('Preferences loaded: ' + JSON.stringify(recentPreferences))
-      initialPreferences['galleryFolder'] = recentPreferences != null ? recentPreferences['galleryFolder'] : DEFAULT_FOLDER
-      initialPreferences['refreshInterval'] = recentPreferences != null ? recentPreferences['refreshInterval'] : DEFAULT_REFRESH_INTERVAL
-      initialPreferences['numColumns'] = recentPreferences != null ? recentPreferences['numColumns'] : DEFAULT_NUM_COLUMNS
-    }
+  eventChannel.on(eventChannel.EVENT_SAVE_PREFERENCES, function (event, eventData) {
+    handleSavePreferenceEvent(event, eventData)
+  })
+}
 
-    logger.log('initial prefs: ' + JSON.stringify(initialPreferences))
+function handleGalleryLoadedEvent(event, eventData) {
+  logger.logEventReceived(eventChannel.EVENT_GALLERY_LOADED, eventData)
 
-    try {
-      eventChannel.send(eventChannel.EVENT_INIT_GALLERY, {
-        'defaultFolder': initialPreferences['galleryFolder'],
-        'refreshInterval': initialPreferences['refreshInterval'],
-        'numColumns': initialPreferences['numColumns']
+  var initialPreferences = defaultPreferences()
+  var recentPreferences = loadRecentPreferences()
+  if (recentPreferences != null) {
+    logger.log('Preferences loaded: ' + JSON.stringify(recentPreferences))
+    initialPreferences['galleryFolder'] = recentPreferences != null ? recentPreferences['galleryFolder'] : DEFAULT_FOLDER
+    initialPreferences['refreshInterval'] = recentPreferences != null ? recentPreferences['refreshInterval'] : DEFAULT_REFRESH_INTERVAL
+    initialPreferences['numColumns'] = recentPreferences != null ? recentPreferences['numColumns'] : DEFAULT_NUM_COLUMNS
+  }
+
+  logger.log('initial prefs: ' + JSON.stringify(initialPreferences))
+
+  try {
+    eventChannel.send(eventChannel.EVENT_INIT_GALLERY, {
+      'defaultFolder': initialPreferences['galleryFolder'],
+      'refreshInterval': initialPreferences['refreshInterval'],
+      'numColumns': initialPreferences['numColumns']
+    })
+  }
+  catch (err) {
+    logger.log(err);
+  }
+}
+
+function handleSelectGalleryImagesEvent(event, eventData) {
+  logger.logEventReceived(eventChannel.EVENT_SELECT_GALLERY_IMAGES, eventData)
+
+  logger.log('selecting images');
+  var galleryFolder = eventData['galleryFolder'];
+
+  try {
+    fs.readdir(galleryFolder, function(err, filenames) {
+      logger.log('folder images:')
+      logger.log(filenames);
+
+      //check if enough images are in folder
+      var setSize = filenames.length < DEFAULT_GALLERY_SET_SIZE ? filenames.length : DEFAULT_GALLERY_SET_SIZE;
+      //select random images from folder
+      var selectedImages = selectRandomImages(filenames, setSize)
+
+      eventChannel.send(eventChannel.EVENT_GALLERY_IMAGES_SELECTED, {
+        'containerId': eventData['containerId'],
+        'galleryFolder': galleryFolder,
+        'imageFilenames': selectedImages
       })
-    }
-    catch (err) {
-      logger.log(err);
-    }
-  })
+    });
+  }
+  catch (err) {
+    logger.log(err);
+  }
+}
 
-  ipc.on(eventChannel.EVENT_SAVE_PREFERENCES, function (event, eventData) {
-    logger.logEventReceived(eventChannel.EVENT_SAVE_PREFERENCES, eventData)
+function handleSavePreferenceEvent(event, eventData) {
+  logger.logEventReceived(eventChannel.EVENT_SAVE_PREFERENCES, eventData)
 
-    var galleryPreferences = eventData['galleryPreferences']
-    savePreferences(galleryPreferences)
-  })
+  var galleryPreferences = eventData['galleryPreferences']
+  savePreferences(galleryPreferences)
 }
 
 function editPreferences() {
