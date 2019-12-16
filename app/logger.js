@@ -4,6 +4,10 @@ var logger = {
     log(message)
   },
 
+  debug: function (message) {
+    debug(message)
+  },
+
   logEventReceived: function (eventName, eventData) {
     logEventReceived(eventName, eventData)
   },
@@ -17,6 +21,10 @@ module.exports = logger
 
 function log(message) {
   console.log(message)
+}
+
+function debug(message) {
+  log("DEBUG: " + message)
 }
 
 function logEventTriggered (eventName) {

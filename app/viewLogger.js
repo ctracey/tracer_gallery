@@ -10,6 +10,10 @@ var viewLogger = {
     logger.log(message)
   },
 
+  debug: function (message) {
+    logger.debug(message)
+  },
+
   logEventReceived: function (eventName, eventData) {
     logger.logEventReceived(eventName, eventData)
   },
