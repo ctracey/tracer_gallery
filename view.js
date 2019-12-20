@@ -1,31 +1,32 @@
 var logger = require("./app/logger")
 
-// Run this function after the page has loaded
-
 let eventChannel
 
+// Run this function after the page has loaded
 $(() => {
-  logger.log('load gallery')
-
+  logger.log('Loading gallery ...')
   try {
+    var galleryPaused = false
     eventChannel = initEventChannel()
-    eventChannel.send(eventChannel.EVENT_GALLERY_LOADED, null)
+
+    var gallery = require("./app/gallery")(eventChannel)
+    gallery.handleEvents()
+
+    handleActions(gallery)
+  
+    logger.log('Gallery loaded');
+    eventChannel.send(eventChannel.EVENT_GALLERY_LOADED, {})
   } catch (err) {
     logger.log('ERROR: ' + err);
   }
+})
 
-  logger.log('gallery loaded');
-  var galleryPaused = false
-
-  var gallery = require("./app/gallery")(eventChannel)
-  gallery.handleEvents()
-
+function handleActions(gallery) {
   const exhibitButton = document.getElementById('exhibitButton')
   exhibitButton.addEventListener('click', function () {
-    gallery.savePreferences();
-    gallery.startGallery(gallery.galleryPreferences()['numColumns'])
+    gallery.savePreferencesAction();
   })
-})
+}
 
 function initEventChannel() {
   var ipc = require('electron').ipcRenderer;

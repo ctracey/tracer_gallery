@@ -13,8 +13,8 @@ module.exports = function(_eventChannel) {
         startGallery(numColumns)
       },
 
-      savePreferences: function() {
-        savePreferences()
+      savePreferencesAction: function() {
+        savePreferencesAction()
       },
 
     }
@@ -23,50 +23,55 @@ module.exports = function(_eventChannel) {
 }
 
 let eventChannel
+let galleryPreferences
+let galleryPaused
 
 function init(_eventChannel) {
   eventChannel = _eventChannel
+  galleryPaused = false
 }
 
 function handleEvents() {
   eventChannel.on(eventChannel.EVENT_INIT_GALLERY, function (event, eventData) {
+    logger.logEventReceived(eventChannel.EVENT_INIT_GALLERY, eventData)
     handleInitGallery(event, eventData)
   })
 
   eventChannel.on(eventChannel.EVENT_GALLERY_IMAGES_SELECTED, function (event, eventData) {
+    logger.logEventReceived(eventChannel.EVENT_GALLERY_IMAGES_SELECTED, eventData)
     handleGalleryImagesSelected(event, eventData)
   })
 
   eventChannel.on(eventChannel.EVENT_EDIT_PREFERENCES, function (event, eventData) {
+    logger.logEventReceived(eventChannel.EVENT_EDIT_PREFERENCES, eventData)
     handleEditPreferencesEvent(event, eventData)
   })
 }
 
 function handleInitGallery(event, eventData) {
-  logger.logEventReceived(eventChannel.EVENT_INIT_GALLERY, eventData)
-
-  $('#gallery-folder').val(eventData['defaultFolder']);
-  $('#refresh-interval').val(eventData['refreshInterval']);
-  $('#num-columns').val(eventData['numColumns']);
-
-  startGallery(eventData['numColumns'])
+  galleryPreferences = loadPreferencesFromJSON(eventData['preferences'])
+  logger.debug('gallery prefs: ' + JSON.stringify(galleryPreferences))
+  startGallery(galleryPreferences.numColumns())
 }
 
 function handleGalleryImagesSelected(event, eventData) {
-  logger.logEventReceived(eventChannel.EVENT_GALLERY_IMAGES_SELECTED, eventData)
+  var eventPreferences = loadPreferencesFromJSON(eventData['preferences'])
+  logger.log('galleryPath:' + eventPreferences.galleryFolder());
 
-  var galleryPath = eventData['galleryFolder'];
-  logger.log('galleryPath:' + galleryPath);
-
-  hideSettingsControls()
   var galleryId = eventData['containerId']
-  displayImages(galleryId, eventData, galleryPath)
+  displayImages(galleryId, eventData['imageFilenames'], eventPreferences.galleryFolder())
+
   refreshGallery(galleryId)
 }
 
 function handleEditPreferencesEvent(event, eventData) {
-  logger.logEventReceived(eventChannel.EVENT_EDIT_PREFERENCES, eventData)
   showSettingsControls()
+}
+
+function savePreferencesAction() {
+  // NOTE: After this action a new gallery will be initialised through form submition
+  logger.log('ACTION: gallery#savePreferencesAction')
+  savePreferences()
 }
 
 function startGallery(numColumns) {
@@ -77,13 +82,18 @@ function startGallery(numColumns) {
 function loadGalleryImages() {
   var columns = $('.gallery-column')
   for (var i=0; i < columns.length; i++) {
-    selectGalleryImages(columns[i].id, galleryFolder())
+    selectGalleryImages(columns[i].id)
   }
 }
 
 function savePreferences() {
+  galleryPreferences = require("./preferences")({
+    'galleryFolder': galleryFolder(),
+    'refreshInterval': refreshInterval(),
+    'numColumns': numColumns()
+  })
   eventChannel.send(eventChannel.EVENT_SAVE_PREFERENCES, {
-    'galleryPreferences': galleryPreferences()
+    'preferences': galleryPreferences.toJSON()
   })
 }
 
@@ -100,19 +110,19 @@ function setupColumns(numColumns) {
   }
 }
 
-function selectGalleryImages(containerId, galleryFolder) {
+function selectGalleryImages(containerId) {
   eventChannel.send(eventChannel.EVENT_SELECT_GALLERY_IMAGES, {
     'containerId': containerId,
-    'galleryFolder': galleryFolder
+    'preferences': galleryPreferences.toJSON()
   })
 }
 
-function displayImages(containerId, eventData, galleryPath) {
+function displayImages(containerId, imageFilenames, galleryPath) {
   //display new images
   logger.log('display images in ' + containerId)
   $('#' + containerId).empty();
-  for (var i=0; i<eventData['imageFilenames'].length; i++) {
-    var imageFilename = eventData['imageFilenames'][i];
+  for (var i=0; i<imageFilenames.length; i++) {
+    var imageFilename = imageFilenames[i];
     imagePath = galleryPath + '/' + imageFilename;
     logger.log('imagePath:' + imagePath);
     $('#' + containerId).append(imageHTML(imagePath));
@@ -131,7 +141,12 @@ function hideSettingsControls() {
 
 function showSettingsControls() {
   logger.log('hiding settings')
-  pauseGallery()
+  //pauseGallery()
+
+  $('#gallery-folder').val(galleryPreferences.galleryFolder());
+  $('#refresh-interval').val(galleryPreferences.refreshInterval());
+  $('#num-columns').val(galleryPreferences.numColumns());
+
   $('#settings-container').show()
 }
 
@@ -145,24 +160,11 @@ function playGallery() {
 
 function refreshGallery(galleryId) {
   setTimeout(function(){
+    logger.log('Refreshing gallery: ' + galleryId + ' [galleryPaused: ' + galleryPaused + ']')
     if (!galleryPaused) {
-      eventChannel.send(eventChannel.EVENT_SELECT_GALLERY_IMAGES, {
-        'containerId': galleryId,
-        'galleryFolder': galleryFolder()
-      })
+      selectGalleryImages(galleryId)
     }
-    logger.logEventTriggered(eventChannel.EVENT_SELECT_GALLERY_IMAGES)
-  }, refreshInterval() * 1000) //convert galleryPreferences as seconds to milliseconds
-}
-
-function galleryPreferences() {
-  var preferences = {
-    'galleryFolder': galleryFolder(),
-    'refreshInterval': refreshInterval(),
-    'numColumns': numColumns()
-  }
-
-  return preferences
+  }, galleryPreferences.refreshInterval() * 1000) //convert preference as seconds to milliseconds
 }
 
 function galleryFolder() {
@@ -175,4 +177,8 @@ function refreshInterval() {
 
 function numColumns() {
   return $('#num-columns').val();
+}
+
+function loadPreferencesFromJSON(jsonPreferences) {
+  return require("./preferences")(jsonPreferences)
 }

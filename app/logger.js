@@ -12,8 +12,8 @@ var logger = {
     logEventReceived(eventName, eventData)
   },
 
-  logEventTriggered: function (eventName) {
-    logEventTriggered(eventName)
+  logEventTriggered: function (eventName, eventData) {
+    logEventTriggered(eventName, eventData)
   },
 
 }
@@ -27,8 +27,9 @@ function debug(message) {
   log("DEBUG: " + message)
 }
 
-function logEventTriggered (eventName) {
+function logEventTriggered (eventName, eventData) {
     log('TRIGGERED EVENT: ' + eventName);
+    log('\t' + JSON.stringify(eventData))
 }
 
 function logEventReceived(eventName, eventData) {

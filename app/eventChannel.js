@@ -14,6 +14,7 @@ module.exports = function(channelName, inboundChannel, outboundChannel) {
 
   var module = {
 
+    // CONSTANTS
     EVENT_INIT_GALLERY:            EVENT_INIT_GALLERY,
     EVENT_GALLERY_LOADED:          EVENT_GALLERY_LOADED,
     EVENT_SAVE_PREFERENCES:        EVENT_SAVE_PREFERENCES,
@@ -23,6 +24,7 @@ module.exports = function(channelName, inboundChannel, outboundChannel) {
     EVENT_QUIT_APPLICATION:        EVENT_QUIT_APPLICATION,
     EVENT_MENU_ITEM_SELECTED:      EVENT_MENU_ITEM_SELECTED,
 
+    // FUNCTIONS
     channelName: function() {
       return channelName
     },
@@ -54,7 +56,7 @@ function init(_channelName, _inboundChannel, _outboundChannel) {
 
 function sendEvent(eventName, eventData) {
   outboundChannel.send(eventName, eventData)
-  logger.logEventTriggered(eventName)
+  logger.logEventTriggered(eventName, eventData)
 }
 
 function on(eventName, handler) {

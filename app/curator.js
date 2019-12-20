@@ -31,43 +31,35 @@ function init(mainApp, _eventChannel) {
   eventChannel = _eventChannel
 }
 
-function preferencesFilePath() {
-  return app.getAppPath() + APP_PREFERENCES_FILE_PATH
-}
-
 function handleEvents() {
   eventChannel.on(eventChannel.EVENT_GALLERY_LOADED, function (event, eventData) {
+    logger.logEventReceived(eventChannel.EVENT_GALLERY_LOADED, eventData)
     handleGalleryLoadedEvent(event, eventData)
   })
 
   eventChannel.on(eventChannel.EVENT_SELECT_GALLERY_IMAGES, function (event, eventData) {
+    logger.logEventReceived(eventChannel.EVENT_SELECT_GALLERY_IMAGES, eventData)
     handleSelectGalleryImagesEvent(event, eventData)
   })
 
   eventChannel.on(eventChannel.EVENT_SAVE_PREFERENCES, function (event, eventData) {
+    logger.logEventReceived(eventChannel.EVENT_SAVE_PREFERENCES, eventData)
     handleSavePreferenceEvent(event, eventData)
   })
 }
 
 function handleGalleryLoadedEvent(event, eventData) {
-  logger.logEventReceived(eventChannel.EVENT_GALLERY_LOADED, eventData)
-
-  var initialPreferences = defaultPreferences()
   var recentPreferences = loadRecentPreferences()
-  if (recentPreferences != null) {
-    logger.log('Preferences loaded: ' + JSON.stringify(recentPreferences))
-    initialPreferences['galleryFolder'] = recentPreferences != null ? recentPreferences['galleryFolder'] : DEFAULT_FOLDER
-    initialPreferences['refreshInterval'] = recentPreferences != null ? recentPreferences['refreshInterval'] : DEFAULT_REFRESH_INTERVAL
-    initialPreferences['numColumns'] = recentPreferences != null ? recentPreferences['numColumns'] : DEFAULT_NUM_COLUMNS
-  }
-
-  logger.log('initial prefs: ' + JSON.stringify(initialPreferences))
+  var initialPreferences = newPreferences(
+      recentPreferences['galleryFolder'],
+      recentPreferences['refreshInterval'],
+      recentPreferences['numColumns']
+  )
+  logger.log('Initial preferences: ' + JSON.stringify(initialPreferences.toJSON()))
 
   try {
     eventChannel.send(eventChannel.EVENT_INIT_GALLERY, {
-      'defaultFolder': initialPreferences['galleryFolder'],
-      'refreshInterval': initialPreferences['refreshInterval'],
-      'numColumns': initialPreferences['numColumns']
+      'preferences': initialPreferences.toJSON()
     })
   }
   catch (err) {
@@ -76,13 +68,12 @@ function handleGalleryLoadedEvent(event, eventData) {
 }
 
 function handleSelectGalleryImagesEvent(event, eventData) {
-  logger.logEventReceived(eventChannel.EVENT_SELECT_GALLERY_IMAGES, eventData)
-
   logger.log('selecting images');
-  var galleryFolder = eventData['galleryFolder'];
+  var preferences = loadPreferencesFromJSON(eventData['preferences'])
+  var containerId = eventData['containerId']
 
   try {
-    fs.readdir(galleryFolder, function(err, filenames) {
+    fs.readdir(preferences.galleryFolder(), function(err, filenames) {
       logger.log('folder images:')
       logger.log(filenames);
 
@@ -92,9 +83,9 @@ function handleSelectGalleryImagesEvent(event, eventData) {
       var selectedImages = selectRandomImages(filenames, setSize)
 
       eventChannel.send(eventChannel.EVENT_GALLERY_IMAGES_SELECTED, {
-        'containerId': eventData['containerId'],
-        'galleryFolder': galleryFolder,
-        'imageFilenames': selectedImages
+        'containerId': containerId,
+        'imageFilenames': selectedImages,
+        'preferences': preferences.toJSON()
       })
     });
   }
@@ -104,21 +95,15 @@ function handleSelectGalleryImagesEvent(event, eventData) {
 }
 
 function handleSavePreferenceEvent(event, eventData) {
-  logger.logEventReceived(eventChannel.EVENT_SAVE_PREFERENCES, eventData)
-
-  var galleryPreferences = eventData['galleryPreferences']
+  var galleryPreferences = loadPreferencesFromJSON(eventData['preferences'])
   savePreferences(galleryPreferences)
-}
-
-function editPreferences() {
-  eventChannel.send(eventChannel.EVENT_EDIT_PREFERENCES, {})
 }
 
 function selectRandomImages(filenames, setSize) {
   var index = 0;
   var selectedImages = []
 
-  var shuffledIndexes = shuffleArray(Array.from(Array(filenames.length).keys()))
+  var shuffledIndexes = shuffleArray(numberSequence(filenames.length))
 
   //until required images selected or no more files left to choose from
   while (selectedImages.length < setSize && index < shuffledIndexes.length) {
@@ -134,6 +119,10 @@ function selectRandomImages(filenames, setSize) {
   logger.log(selectedImages)
 
   return selectedImages
+}
+
+function numberSequence(length) {
+  return Array.from(Array(length).keys())
 }
 
 function shuffleArray(array) {
@@ -156,11 +145,11 @@ function shuffleArray(array) {
 }
 
 function savePreferences(galleryPreferences) {
-  var currentGalleryFolder = galleryPreferences['galleryFolder']
+  var currentGalleryFolder = galleryPreferences.galleryFolder()
 
   var preferences = {}
   preferences['latestPreferencesKey'] = currentGalleryFolder
-  preferences[currentGalleryFolder] = galleryPreferences
+  preferences[currentGalleryFolder] = galleryPreferences.toJSON()
 
   try {
     fs.writeFileSync(preferencesFilePath(), JSON.stringify(preferences), 'utf-8');
@@ -171,7 +160,7 @@ function savePreferences(galleryPreferences) {
 }
 
 function loadRecentPreferences() {
-  var recentPreferences
+  var recentPreferences = {}
 
   try {
     var data = fs.readFileSync(preferencesFilePath());
@@ -179,9 +168,10 @@ function loadRecentPreferences() {
       logger.log("Synchronous read: " + data.toString());
       var preferences = JSON.parse(data.toString())
       var latestPreferencesKey = preferences['latestPreferencesKey']
-      logger.log('LOADED preferences: ' + preferences['latestPreferencesKey'])
+      logger.log('LOADED preferences for: ' + preferences['latestPreferencesKey'])
 
       recentPreferences = preferences[latestPreferencesKey]
+      logger.log('Preferences loaded: ' + JSON.stringify(recentPreferences))
     }
   } catch(error) {
     logger.log('failed to read preferences from file' + error)
@@ -190,10 +180,18 @@ function loadRecentPreferences() {
   return recentPreferences
 }
 
-function defaultPreferences() {
-  return {
-    'galleryFolder': DEFAULT_FOLDER,
-    'refreshInterval': DEFAULT_REFRESH_INTERVAL
-  }
+function newPreferences(galleryFolder, refreshInterval, numColumns) {
+  return require("./preferences")({
+    'galleryFolder': galleryFolder,
+    'refreshInterval': refreshInterval,
+    'numColumns': numColumns
+  })
 }
 
+function loadPreferencesFromJSON(jsonPreferences) {
+  return require("./preferences")(jsonPreferences)
+}
+
+function preferencesFilePath() {
+  return app.getAppPath() + APP_PREFERENCES_FILE_PATH
+}
