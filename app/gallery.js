@@ -50,7 +50,6 @@ function handleEvents() {
 
 function handleInitGallery(event, eventData) {
   galleryPreferences = loadPreferencesFromJSON(eventData['preferences'])
-  logger.debug('gallery prefs: ' + JSON.stringify(galleryPreferences))
   startGallery(galleryPreferences.numColumns())
 }
 
@@ -140,7 +139,7 @@ function hideSettingsControls() {
 }
 
 function showSettingsControls() {
-  logger.log('hiding settings')
+  logger.log('show settings')
   //pauseGallery()
 
   $('#gallery-folder').val(galleryPreferences.galleryFolder());

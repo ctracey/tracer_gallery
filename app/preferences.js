@@ -1,44 +1,53 @@
-const DEFAULT_FOLDER = './test/sample_images'
+const DEFAULT_FOLDER = 'test/sample_images'
 const DEFAULT_REFRESH_INTERVAL = '60'
 const DEFAULT_GALLERY_SET_SIZE = 12
 const DEFAULT_NUM_COLUMNS = 1
 
+//TODO: non parametised initialiser that doesnt change preferences. Can you create multiple instances of a module? How does that work
 module.exports = function(json) {
   init(json)
 
   var module = {
+    // CONSTANTS
+
+    DEFAULT_FOLDER: DEFAULT_FOLDER,
+    DEFAULT_REFRESH_INTERVAL: DEFAULT_REFRESH_INTERVAL,
+    DEFAULT_GALLERY_SET_SIZE: DEFAULT_GALLERY_SET_SIZE,
+    DEFAULT_NUM_COLUMNS: DEFAULT_NUM_COLUMNS,
+
+    // FUNCTIONS
 
     loadFromJSON: function (_json) {
       return loadFromJSON(_json)
     },
 
-    toJSON: function() {
-      return preferences
+    toJSON: function () {
+      return preferencesData
     },
 
     galleryFolder: function () {
-      return preferences['galleryFolder'] },
+      return preferencesData['galleryFolder'] },
 
     refreshInterval: function () {
-      return preferences['refreshInterval']
+      return preferencesData['refreshInterval']
     },
 
     numColumns: function () {
-      return preferences['numColumns']
+      return preferencesData['numColumns']
     },
 
     gallerySetSize: function () {
-      return preferences['gallerySetSize']
+      return preferencesData['gallerySetSize']
     },
   }
 
   return module;
 }
 
-let preferences
+let preferencesData
 
 function init(json) {
-  preferences = defaultPreferences()
+  preferencesData = defaultPreferences()
 
   //when json is null use empty object and get defaults
   if (!json) {
@@ -46,9 +55,9 @@ function init(json) {
   }
 
   //replace default preferences with params if not null
-  preferences['galleryFolder'] = json['galleryFolder'] ? json['galleryFolder'] : DEFAULT_FOLDER
-  preferences['refreshInterval'] = json['refreshInterval'] ? json['refreshInterval'] : DEFAULT_REFRESH_INTERVAL
-  preferences['numColumns'] = json['numColumns'] ? json['numColumns'] : DEFAULT_NUM_COLUMNS
+  if (json['galleryFolder']) preferencesData['galleryFolder'] = json['galleryFolder']
+  if (json['refreshInterval']) preferencesData['refreshInterval'] = json['refreshInterval']
+  if (json['numColumns']) preferencesData['numColumns'] = json['numColumns']
 }
 
 function loadFromJSON(json) {
@@ -57,10 +66,14 @@ function loadFromJSON(json) {
 
 function defaultPreferences() {
   return {
-    'galleryFolder':   DEFAULT_FOLDER,
+    'galleryFolder':   defaultFolderPath(),
     'refreshInterval': DEFAULT_REFRESH_INTERVAL,
     'numColumns':      DEFAULT_NUM_COLUMNS,
     'gallerySetSize':  DEFAULT_GALLERY_SET_SIZE
   }
+}
+
+function defaultFolderPath() {
+  return './' + DEFAULT_FOLDER
 }
 

@@ -4,10 +4,6 @@ const path = require('path')
 var logger = require("./logger")
 
 const APP_PREFERENCES_FILE_PATH = '/preferences/preferences.json'
-const DEFAULT_FOLDER = './test/sample_images'
-const DEFAULT_REFRESH_INTERVAL = '60'
-const DEFAULT_GALLERY_SET_SIZE = 12
-const DEFAULT_NUM_COLUMNS = 1
 
 module.exports = function(mainApp, _eventChannel) {
   init(mainApp, _eventChannel)
@@ -50,11 +46,19 @@ function handleEvents() {
 
 function handleGalleryLoadedEvent(event, eventData) {
   var recentPreferences = loadRecentPreferences()
-  var initialPreferences = newPreferences(
+  var initialPreferences
+  if (recentPreferences) {
+    logger.log('Using saved preferences')
+    initialPreferences = newPreferences(
       recentPreferences['galleryFolder'],
       recentPreferences['refreshInterval'],
       recentPreferences['numColumns']
-  )
+    )
+  } else {
+    logger.log('Using localised default preferences')
+    initialPreferences = newPreferences(localisedDefaultFolderPath(), null, null)
+  }
+
   logger.log('Initial preferences: ' + JSON.stringify(initialPreferences.toJSON()))
 
   try {
@@ -78,7 +82,7 @@ function handleSelectGalleryImagesEvent(event, eventData) {
       logger.log(filenames);
 
       //check if enough images are in folder
-      var setSize = filenames.length < DEFAULT_GALLERY_SET_SIZE ? filenames.length : DEFAULT_GALLERY_SET_SIZE;
+      var setSize = filenames.length < preferences.DEFAULT_GALLERY_SET_SIZE ? filenames.length : preferences.DEFAULT_GALLERY_SET_SIZE;
       //select random images from folder
       var selectedImages = selectRandomImages(filenames, setSize)
 
@@ -195,3 +199,8 @@ function loadPreferencesFromJSON(jsonPreferences) {
 function preferencesFilePath() {
   return app.getAppPath() + APP_PREFERENCES_FILE_PATH
 }
+
+function localisedDefaultFolderPath() {
+  return app.getAppPath() + '/' + require("./preferences")({}).DEFAULT_FOLDER
+}
+
