@@ -33,6 +33,14 @@
   color: #696969;
 }
 
+.settings-container_cancel-button {
+  float: right;
+  border: none;
+  background:none;
+  color: #696969;
+  padding-bottom: 8px;
+}
+
 .text-centered {
   margin: 0px;
   text-align: center;

@@ -17,6 +17,10 @@ module.exports = function(_eventChannel) {
         savePreferencesAction()
       },
 
+      cancelPreferencesAction: function() {
+        cancelPreferencesAction()
+      },
+
     }
 
   return module;
@@ -71,6 +75,11 @@ function savePreferencesAction() {
   // NOTE: After this action a new gallery will be initialised through form submition
   logger.log('ACTION: gallery#savePreferencesAction')
   savePreferences()
+}
+
+function cancelPreferencesAction() {
+  logger.log('ACTION: gallery#cancelPreferencesAction')
+  hideSettingsControls()
 }
 
 function startGallery(numColumns) {
