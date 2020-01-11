@@ -1,16 +1,13 @@
-var logger = require("./logger")
+const logger = require("./logger")
+const Preferences = require("./preferences").class
 
-module.exports = function(_eventChannel) {
-  init(_eventChannel)
+module.exports = function(eventChannel) {
+  init(eventChannel)
 
     var module = {
 
       handleEvents: function() {
         handleEvents()
-      },
-
-      startGallery: function(numColumns) {
-        startGallery(numColumns)
       },
 
       savePreferencesAction: function() {
@@ -26,43 +23,48 @@ module.exports = function(_eventChannel) {
   return module;
 }
 
-let eventChannel
-let galleryPreferences
-let galleryPaused
+let _eventChannel
+let _galleryPreferences
+let _galleryPaused
 
-function init(_eventChannel) {
-  eventChannel = _eventChannel
-  galleryPaused = false
+function init(eventChannel) {
+  _eventChannel = eventChannel
+  _galleryPaused = false
 }
 
 function handleEvents() {
-  eventChannel.on(eventChannel.EVENT_INIT_GALLERY, function (event, eventData) {
-    logger.logEventReceived(eventChannel.EVENT_INIT_GALLERY, eventData)
+  _eventChannel.on(_eventChannel.EVENT_INIT_GALLERY, function (event, eventData) {
+    logger.logEventReceived(_eventChannel.EVENT_INIT_GALLERY, eventData)
     handleInitGallery(event, eventData)
   })
 
-  eventChannel.on(eventChannel.EVENT_GALLERY_IMAGES_SELECTED, function (event, eventData) {
-    logger.logEventReceived(eventChannel.EVENT_GALLERY_IMAGES_SELECTED, eventData)
+  _eventChannel.on(_eventChannel.EVENT_GALLERY_IMAGES_SELECTED, function (event, eventData) {
+    logger.logEventReceived(_eventChannel.EVENT_GALLERY_IMAGES_SELECTED, eventData)
     handleGalleryImagesSelected(event, eventData)
   })
 
-  eventChannel.on(eventChannel.EVENT_EDIT_PREFERENCES, function (event, eventData) {
-    logger.logEventReceived(eventChannel.EVENT_EDIT_PREFERENCES, eventData)
+  _eventChannel.on(_eventChannel.EVENT_EDIT_PREFERENCES, function (event, eventData) {
+    logger.logEventReceived(_eventChannel.EVENT_EDIT_PREFERENCES, eventData)
     handleEditPreferencesEvent(event, eventData)
+  })
+
+  _eventChannel.on(_eventChannel.EVENT_PREFERENCES_SAVED, function (event, eventData) {
+    logger.logEventReceived(_eventChannel.EVENT_PREFERENCES_SAVED, eventData)
+    handlePreferencesSavedEvent(event, eventData)
   })
 }
 
 function handleInitGallery(event, eventData) {
-  galleryPreferences = loadPreferencesFromJSON(eventData['preferences'])
-  startGallery(galleryPreferences.numColumns())
+  _galleryPreferences = new Preferences(eventData['preferences'])
+  startGallery()
 }
 
 function handleGalleryImagesSelected(event, eventData) {
-  var eventPreferences = loadPreferencesFromJSON(eventData['preferences'])
-  logger.log('galleryPath:' + eventPreferences.galleryFolder());
+  var eventPreferences = new Preferences(eventData['preferences'])
+  logger.log('galleryPath:' + eventPreferences.galleryFolder);
 
   var galleryId = eventData['containerId']
-  displayImages(galleryId, eventData['imageFilenames'], eventPreferences.galleryFolder())
+  displayImages(galleryId, eventData['imageFilenames'], eventPreferences.galleryFolder)
 
   refreshGallery(galleryId)
 }
@@ -71,19 +73,32 @@ function handleEditPreferencesEvent(event, eventData) {
   showSettingsControls()
 }
 
+function handlePreferencesSavedEvent(event, eventData) {
+  var preferencesValid = eventData['preferencesSaved']
+  if (preferencesValid) {
+    _galleryPreferences = new Preferences(eventData['preferences'])
+    hideSettingsControls()
+    startGallery()
+  } else {
+    alert('ERROR: Invalid preferences\n\n' + eventData['errorMessage'])
+  }
+}
+
 function savePreferencesAction() {
-  // NOTE: After this action a new gallery will be initialised through form submition
   logger.log('ACTION: gallery#savePreferencesAction')
   savePreferences()
+  //TODO: fire save preferences with enter key
 }
 
 function cancelPreferencesAction() {
   logger.log('ACTION: gallery#cancelPreferencesAction')
   hideSettingsControls()
+  startGallery()
 }
 
-function startGallery(numColumns) {
-  setupColumns(numColumns);
+function startGallery() {
+  logger.log('Start gallery')
+  setupColumns(_galleryPreferences.numColumns);
   loadGalleryImages()
 }
 
@@ -94,17 +109,6 @@ function loadGalleryImages() {
   }
 }
 
-function savePreferences() {
-  galleryPreferences = require("./preferences")({
-    'galleryFolder': galleryFolder(),
-    'refreshInterval': refreshInterval(),
-    'numColumns': numColumns()
-  })
-  eventChannel.send(eventChannel.EVENT_SAVE_PREFERENCES, {
-    'preferences': galleryPreferences.toJSON()
-  })
-}
-
 function setupColumns(numColumns) {
   logger.log('Setting gallery columns to:' + numColumns)
 
@@ -112,16 +116,18 @@ function setupColumns(numColumns) {
   logger.log('galleryWidth: ' + galleryWidth)
 
   $('#galleries-container').empty()
+
+  var timestamp = Date.now()
   for (var i=0; i < numColumns; i++) {
     logger.log('add gallery container')
-    $('#galleries-container').append("<div id='gallery_container_" + i + "' class='gallery-column' style='width:" + galleryWidth + "%;'></div>")
+    $('#galleries-container').append("<div id='" + galleryContainerId(timestamp, i) + "' class='gallery-column' style='width:" + galleryWidth + "%;'></div>")
   }
 }
 
 function selectGalleryImages(containerId) {
-  eventChannel.send(eventChannel.EVENT_SELECT_GALLERY_IMAGES, {
+  _eventChannel.send(_eventChannel.EVENT_SELECT_GALLERY_IMAGES, {
     'containerId': containerId,
-    'preferences': galleryPreferences.toJSON()
+    'preferences': _galleryPreferences.toJSON()
   })
 }
 
@@ -137,8 +143,38 @@ function displayImages(containerId, imageFilenames, galleryPath) {
   }
 }
 
-function imageHTML(imagePath) {
-  return "<div class='gallery-image'><img style='width:100%' src='" + imagePath + "'/></div>"
+function refreshGallery(galleryId) {
+  if (galleryExists(galleryId)) {
+    setTimeout(function(){
+      logger.log('Refreshing gallery: ' + galleryId + ' [galleryPaused: ' + _galleryPaused + ']')
+      if (!_galleryPaused) {
+        selectGalleryImages(galleryId)
+      }
+    }, _galleryPreferences.refreshInterval * 1000) //convert preference as seconds to milliseconds
+  }
+}
+
+function savePreferences() {
+  var newPreferences = new Preferences({
+    'galleryFolder': galleryFolder(),
+    'refreshInterval': refreshInterval(),
+    'numColumns': numColumns()
+  })
+
+  _eventChannel.send(_eventChannel.EVENT_SAVE_PREFERENCES, {
+    'preferences': newPreferences.toJSON()
+  })
+}
+
+function showSettingsControls() {
+  logger.log('show settings')
+  pauseGallery()
+
+  $('#gallery-folder').val(_galleryPreferences.galleryFolder);
+  $('#refresh-interval').val(_galleryPreferences.refreshInterval);
+  $('#num-columns').val(_galleryPreferences.numColumns);
+
+  $('#settings-container').show()
 }
 
 function hideSettingsControls() {
@@ -147,32 +183,24 @@ function hideSettingsControls() {
   $('#settings-container').hide()
 }
 
-function showSettingsControls() {
-  logger.log('show settings')
-  //pauseGallery()
-
-  $('#gallery-folder').val(galleryPreferences.galleryFolder());
-  $('#refresh-interval').val(galleryPreferences.refreshInterval());
-  $('#num-columns').val(galleryPreferences.numColumns());
-
-  $('#settings-container').show()
-}
-
 function pauseGallery() {
-  galleryPaused = true
+  _galleryPaused = true
 }
 
 function playGallery() {
-  galleryPaused = false
+  _galleryPaused = false
 }
 
-function refreshGallery(galleryId) {
-  setTimeout(function(){
-    logger.log('Refreshing gallery: ' + galleryId + ' [galleryPaused: ' + galleryPaused + ']')
-    if (!galleryPaused) {
-      selectGalleryImages(galleryId)
-    }
-  }, galleryPreferences.refreshInterval() * 1000) //convert preference as seconds to milliseconds
+function galleryContainerId(timestamp, identifier) {
+  return 'gallery_container_' + timestamp + '-' + identifier
+}
+
+function galleryExists(galleryId) {
+  return $('#' + galleryId).length
+}
+
+function imageHTML(imagePath) {
+  return "<div class='gallery-image'><img style='width:100%' src='" + imagePath + "'/></div>"
 }
 
 function galleryFolder() {
@@ -187,6 +215,3 @@ function numColumns() {
   return $('#num-columns').val();
 }
 
-function loadPreferencesFromJSON(jsonPreferences) {
-  return require("./preferences")(jsonPreferences)
-}

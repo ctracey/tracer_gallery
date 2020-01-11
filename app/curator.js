@@ -1,12 +1,13 @@
 const fs = require('fs')
 const path = require('path')
 
-var logger = require("./logger")
+const Preferences = require("./preferences").class
+const logger = require("./logger")
 
 const APP_PREFERENCES_FILE_PATH = '/preferences/preferences.json'
 
-module.exports = function(mainApp, _eventChannel) {
-  init(mainApp, _eventChannel)
+module.exports = function(mainApp, eventChannel) {
+  init(mainApp, eventChannel)
 
   var module = {
 
@@ -19,40 +20,40 @@ module.exports = function(mainApp, _eventChannel) {
   return module;
 }
 
-let app
-let eventChannel
+let _app
+let _eventChannel
 
-function init(mainApp, _eventChannel) {
-  app = mainApp
-  eventChannel = _eventChannel
+function init(mainApp, eventChannel) {
+  _app = mainApp
+  _eventChannel = eventChannel
 }
 
 function handleEvents() {
-  eventChannel.on(eventChannel.EVENT_GALLERY_LOADED, function (event, eventData) {
-    logger.logEventReceived(eventChannel.EVENT_GALLERY_LOADED, eventData)
+  _eventChannel.on(_eventChannel.EVENT_GALLERY_LOADED, function (event, eventData) {
+    logger.logEventReceived(_eventChannel.EVENT_GALLERY_LOADED, eventData)
     handleGalleryLoadedEvent(event, eventData)
   })
 
-  eventChannel.on(eventChannel.EVENT_SELECT_GALLERY_IMAGES, function (event, eventData) {
-    logger.logEventReceived(eventChannel.EVENT_SELECT_GALLERY_IMAGES, eventData)
+  _eventChannel.on(_eventChannel.EVENT_SELECT_GALLERY_IMAGES, function (event, eventData) {
+    logger.logEventReceived(_eventChannel.EVENT_SELECT_GALLERY_IMAGES, eventData)
     handleSelectGalleryImagesEvent(event, eventData)
   })
 
-  eventChannel.on(eventChannel.EVENT_SAVE_PREFERENCES, function (event, eventData) {
-    logger.logEventReceived(eventChannel.EVENT_SAVE_PREFERENCES, eventData)
+  _eventChannel.on(_eventChannel.EVENT_SAVE_PREFERENCES, function (event, eventData) {
+    logger.logEventReceived(_eventChannel.EVENT_SAVE_PREFERENCES, eventData)
     handleSavePreferenceEvent(event, eventData)
   })
 }
 
 function handleGalleryLoadedEvent(event, eventData) {
-  var recentPreferences = loadRecentPreferences()
+  var recentPreferences = new Preferences(loadRecentPreferences())
   var initialPreferences
   if (recentPreferences) {
     logger.log('Using saved preferences')
     initialPreferences = newPreferences(
-      recentPreferences['galleryFolder'],
-      recentPreferences['refreshInterval'],
-      recentPreferences['numColumns']
+      recentPreferences.galleryFolder,
+      recentPreferences.refreshInterval,
+      recentPreferences.numColumns
     )
   } else {
     logger.log('Using localised default preferences')
@@ -62,7 +63,7 @@ function handleGalleryLoadedEvent(event, eventData) {
   logger.log('Initial preferences: ' + JSON.stringify(initialPreferences.toJSON()))
 
   try {
-    eventChannel.send(eventChannel.EVENT_INIT_GALLERY, {
+    _eventChannel.send(_eventChannel.EVENT_INIT_GALLERY, {
       'preferences': initialPreferences.toJSON()
     })
   }
@@ -73,11 +74,11 @@ function handleGalleryLoadedEvent(event, eventData) {
 
 function handleSelectGalleryImagesEvent(event, eventData) {
   logger.log('selecting images');
-  var preferences = loadPreferencesFromJSON(eventData['preferences'])
+  var preferences = new Preferences(eventData['preferences'])
   var containerId = eventData['containerId']
 
   try {
-    fs.readdir(preferences.galleryFolder(), function(err, filenames) {
+    fs.readdir(preferences.galleryFolder, function(err, filenames) {
       logger.log('folder images:')
       logger.log(filenames);
 
@@ -86,7 +87,7 @@ function handleSelectGalleryImagesEvent(event, eventData) {
       //select random images from folder
       var selectedImages = selectRandomImages(filenames, setSize)
 
-      eventChannel.send(eventChannel.EVENT_GALLERY_IMAGES_SELECTED, {
+      _eventChannel.send(_eventChannel.EVENT_GALLERY_IMAGES_SELECTED, {
         'containerId': containerId,
         'imageFilenames': selectedImages,
         'preferences': preferences.toJSON()
@@ -99,7 +100,7 @@ function handleSelectGalleryImagesEvent(event, eventData) {
 }
 
 function handleSavePreferenceEvent(event, eventData) {
-  var galleryPreferences = loadPreferencesFromJSON(eventData['preferences'])
+  var galleryPreferences = new Preferences(eventData['preferences'])
   savePreferences(galleryPreferences)
 }
 
@@ -149,18 +150,35 @@ function shuffleArray(array) {
 }
 
 function savePreferences(galleryPreferences) {
-  var currentGalleryFolder = galleryPreferences.galleryFolder()
-
-  var preferences = {}
-  preferences['latestPreferencesKey'] = currentGalleryFolder
-  preferences[currentGalleryFolder] = galleryPreferences.toJSON()
-
   try {
+    validatePreferences(galleryPreferences)
+
+    var currentGalleryFolder = galleryPreferences.galleryFolder
+
+    var preferences = {}
+    preferences['latestPreferencesKey'] = currentGalleryFolder
+    preferences[currentGalleryFolder] = galleryPreferences.toJSON()
+
     fs.writeFileSync(preferencesFilePath(), JSON.stringify(preferences), 'utf-8');
-    logger.log('saved preferences to: ' + app.getAppPath())
+    logger.log('saved preferences to: ' + _app.getAppPath())
+
+    _eventChannel.send(_eventChannel.EVENT_PREFERENCES_SAVED, {
+      'preferencesSaved': true,
+      'preferences': galleryPreferences.toJSON()
+    })
   } catch(error) {
-    logger.log('Failed to save preferences !' + error);
+    // Handle validation errors
+    logger.log('ERROR: Failed to save preferences: ' + error);
+    _eventChannel.send(_eventChannel.EVENT_PREFERENCES_SAVED, {
+      'preferencesSaved': false,
+      'errorMessage': error,
+      'preferences': galleryPreferences.toJSON()
+    })
   }
+}
+
+function validatePreferences(preferences) {
+  if (!folderExists(preferences.galleryFolder)) throw 'Folder does not exist: "' + preferences.galleryFolder + '"'
 }
 
 function loadRecentPreferences() {
@@ -185,22 +203,22 @@ function loadRecentPreferences() {
 }
 
 function newPreferences(galleryFolder, refreshInterval, numColumns) {
-  return require("./preferences")({
+  return new Preferences({
     'galleryFolder': galleryFolder,
     'refreshInterval': refreshInterval,
     'numColumns': numColumns
   })
 }
 
-function loadPreferencesFromJSON(jsonPreferences) {
-  return require("./preferences")(jsonPreferences)
-}
-
 function preferencesFilePath() {
-  return app.getAppPath() + APP_PREFERENCES_FILE_PATH
+  return _app.getAppPath() + APP_PREFERENCES_FILE_PATH
 }
 
 function localisedDefaultFolderPath() {
-  return app.getAppPath() + '/' + require("./preferences")({}).DEFAULT_FOLDER
+  return _app.getAppPath() + '/' + new Preferences({}).DEFAULT_FOLDER
+}
+
+function folderExists(path) {
+  return fs.existsSync(path)
 }
 
