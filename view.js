@@ -37,6 +37,12 @@ function handleActions(gallery) {
       gallery.cancelPreferencesAction();
     }
   })
+
+  $('#settings-container').on('keydown', function(event) {
+    if ( (event.key == "Enter") && ($('#settings-container').is(':visible')) ) {
+      gallery.savePreferencesAction();
+    }
+  })
 }
 
 function initEventChannel() {
