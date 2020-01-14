@@ -58,6 +58,9 @@ module.exports = {
         }
       }
 
+      usingDefaults() {
+        return this.galleryFolder == this.defaultFolderPath()
+      }
     }
 }
 

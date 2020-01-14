@@ -48,17 +48,20 @@ function handleEvents() {
 function handleGalleryLoadedEvent(event, eventData) {
   var recentPreferences = new Preferences(loadRecentPreferences())
   var initialPreferences
-  if (recentPreferences) {
-    logger.log('Using saved preferences')
-    initialPreferences = newPreferences(
-      recentPreferences.galleryFolder,
-      recentPreferences.refreshInterval,
-      recentPreferences.numColumns
-    )
-  } else {
+
+  var galleryFolder = recentPreferences.galleryFolder
+  if (recentPreferences.usingDefaults()) {
     logger.log('Using localised default preferences')
-    initialPreferences = newPreferences(localisedDefaultFolderPath(), null, null)
+    galleryFolder = localisedDefaultFolderPath()
+  } else {
+    logger.log('Using saved preferences')
   }
+
+  initialPreferences = newPreferences(
+    galleryFolder,
+    recentPreferences.refreshInterval,
+    recentPreferences.numColumns
+  )
 
   logger.log('Initial preferences: ' + JSON.stringify(initialPreferences.toJSON()))
 
