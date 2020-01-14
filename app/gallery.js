@@ -1,6 +1,8 @@
 const logger = require("./logger")
 const Preferences = require("./preferences").class
 
+const GALLERY_TITLE = 'tracer gallery'
+
 module.exports = function(eventChannel) {
   init(eventChannel)
 
@@ -61,6 +63,8 @@ function handleEvents() {
 
 
 function handleInitGallery(event, eventData) {
+  galleryTitle(GALLERY_TITLE)
+
   _galleryPreferences = new Preferences(eventData['preferences'])
   startGallery()
 }
@@ -195,10 +199,12 @@ function hideSettingsControls() {
 
 function pauseGallery() {
   _galleryPaused = true
+  galleryTitle(GALLERY_TITLE + ' (paused)')
 }
 
 function playGallery() {
   _galleryPaused = false
+  galleryTitle(GALLERY_TITLE)
 }
 
 function galleryContainerId(timestamp, identifier) {
@@ -223,5 +229,9 @@ function refreshInterval() {
 
 function numColumns() {
   return $('#num-columns').val();
+}
+
+function galleryTitle(title) {
+  $('#gallery-title').html(title)
 }
 
