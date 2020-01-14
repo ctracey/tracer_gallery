@@ -52,7 +52,13 @@ function handleEvents() {
     logger.logEventReceived(_eventChannel.EVENT_PREFERENCES_SAVED, eventData)
     handlePreferencesSavedEvent(event, eventData)
   })
+
+  _eventChannel.on(_eventChannel.EVENT_PLAYPAUSE_EXHIBITION, function (event, eventData) {
+    logger.logEventReceived(_eventChannel.EVENT_PLAYPAUSE_EXHIBITION, eventData)
+    handlePlayPauseEvent(event, eventData)
+  })
 }
+
 
 function handleInitGallery(event, eventData) {
   _galleryPreferences = new Preferences(eventData['preferences'])
@@ -84,10 +90,13 @@ function handlePreferencesSavedEvent(event, eventData) {
   }
 }
 
+function handlePlayPauseEvent(event, eventData) {
+  _galleryPaused ?  startGallery() : pauseGallery()
+}
+
 function savePreferencesAction() {
   logger.log('ACTION: gallery#savePreferencesAction')
   savePreferences()
-  //TODO: fire save preferences with enter key
 }
 
 function cancelPreferencesAction() {
@@ -98,6 +107,7 @@ function cancelPreferencesAction() {
 
 function startGallery() {
   logger.log('Start gallery')
+  playGallery()
   setupColumns(_galleryPreferences.numColumns);
   loadGalleryImages()
 }

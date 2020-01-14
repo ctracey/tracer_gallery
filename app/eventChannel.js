@@ -9,6 +9,7 @@ const EVENT_SELECT_GALLERY_IMAGES =   'select-gallery-images'
 const EVENT_GALLERY_IMAGES_SELECTED = 'gallery-images-selected'
 const EVENT_QUIT_APPLICATION =        'quit-application'
 const EVENT_MENU_ITEM_SELECTED =      'event-menu-item-selected'
+const EVENT_PLAYPAUSE_EXHIBITION =    'playpause-exhibition'
 
 module.exports = function(channelName, inboundChannel, outboundChannel) {
   init(channelName, inboundChannel, outboundChannel)
@@ -25,6 +26,7 @@ module.exports = function(channelName, inboundChannel, outboundChannel) {
     EVENT_GALLERY_IMAGES_SELECTED: EVENT_GALLERY_IMAGES_SELECTED,
     EVENT_QUIT_APPLICATION:        EVENT_QUIT_APPLICATION,
     EVENT_MENU_ITEM_SELECTED:      EVENT_MENU_ITEM_SELECTED,
+    EVENT_PLAYPAUSE_EXHIBITION:    EVENT_PLAYPAUSE_EXHIBITION,
 
     // FUNCTIONS
     channelName: function() {

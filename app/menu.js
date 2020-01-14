@@ -1,7 +1,7 @@
 var logger = require("./logger")
 
-module.exports = function(mainApp, _eventChannel) {
-  init(mainApp, _eventChannel)
+module.exports = function(mainApp, eventChannel) {
+  init(mainApp, eventChannel)
 
   var module = {
 
@@ -15,11 +15,11 @@ module.exports = function(mainApp, _eventChannel) {
 }
 
 let app
-let eventChannel
+let _eventChannel
 
-function init(_app, _eventChannel) {
+function init(_app, eventChannel) {
   app = _app
-  eventChannel = _eventChannel
+  _eventChannel = eventChannel
 }
 
 const {Menu} = require('electron')
@@ -29,6 +29,7 @@ function createApplicationMenu() {
 
   menuTemplate.push(appMenuTemplate())
   menuTemplate.push(editMenuTemplate())
+  menuTemplate.push(galleryMenuTemplate())
   menuTemplate.push(viewMenuTemplate())
   menuTemplate.push(windowMenuTemplate())
 
@@ -71,6 +72,21 @@ function appMenuTemplate() {
   }
 }
 
+function galleryMenuTemplate() {
+  return {
+    label: 'Gallery',
+    submenu: [
+      {label: 'Play/Pause',
+        click(menuItem) {
+          logMenuItemEvent(menuItem['label'])
+          playPauseGallery()
+        },
+        accelerator: 'P'
+      }
+    ]
+  }
+}
+
 function preferencesMenuItem() {
   return {label: 'Preferences...',
     click(menuItem) {
@@ -92,9 +108,14 @@ function quitMenuItem(app) {
 }
 
 function editPreferences() {
-  eventChannel.send(eventChannel.EVENT_EDIT_PREFERENCES, {})
+  _eventChannel.send(_eventChannel.EVENT_EDIT_PREFERENCES, {})
+}
+
+function playPauseGallery() {
+  _eventChannel.send(_eventChannel.EVENT_PLAYPAUSE_EXHIBITION, {})
 }
 
 function logMenuItemEvent(menuItem) {
-  logger.logEventReceived(eventChannel.EVENT_MENU_ITEM_SELECTED, {'menuItem': menuItem})
+  logger.logEventReceived(_eventChannel.EVENT_MENU_ITEM_SELECTED, {'menuItem': menuItem})
 }
+
