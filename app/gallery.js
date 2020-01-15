@@ -216,7 +216,7 @@ function galleryExists(galleryId) {
 }
 
 function imageHTML(imagePath) {
-  return "<div class='gallery-image'><img style='width:100%' src='" + imagePath + "'/></div>"
+  return "<div class='gallery-image'><img src='" + imagePath + "'/></div>"
 }
 
 function galleryFolder() {

@@ -2,7 +2,9 @@
   display: none; 
 }
 
-.main {
+body {
+  margin: 0px;
+  padding: 0px;
   background-color: #2f2f2f;
 }
 
@@ -46,12 +48,24 @@
   text-align: center;
 }
 
+.galleries-container {
+  margin: 0px;
+}
+
 .gallery-column {
   float: left;
 }
 
 .gallery-image {
-  padding-left: 4px;
+  padding-left: 1px;
+  padding-right: 1px;
+  margin: 0;
+}
+
+.gallery-image img {
+  display: block;
+  padding-bottom: 2px;
+  width:100%;
 }
 
 .outline {
