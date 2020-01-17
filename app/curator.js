@@ -23,9 +23,9 @@ module.exports = function(mainApp, eventChannel) {
 let _app
 let _eventChannel
 
-function init(mainApp, eventChannel) {
-  _app = mainApp
-  _eventChannel = eventChannel
+function init(appHelper) {
+  _app = appHelper.app()
+  _eventChannel = appHelper.eventChannel()
 }
 
 function handleEvents() {

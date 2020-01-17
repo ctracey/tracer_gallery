@@ -8,6 +8,7 @@ const {app, BrowserWindow, Menu} = require('electron')
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
 let _eventChannel
+let _appHelper
 let _curator
 
 // This method will be called when Electron has finished
@@ -20,9 +21,7 @@ app.on('window-all-closed', function () {
   // On macOS it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
   if (process.platform !== 'darwin') {
-    logger.debug('QUITTING')
-    _eventChannel.send(_eventChannel.EVENT_PAUSE_EXHIBITION, {})
-    app.quit()
+    _appHelper.quit()
   }
 })
 
@@ -38,10 +37,11 @@ app.on('activate', function () {
 function init() {
   mainWindow = createWindow()
   _eventChannel = initEventChannel(mainWindow)
+  _appHelper = initAppHelper()
 
-  createApplicationMenu(_eventChannel)
+  createApplicationMenu(_appHelper, _eventChannel)
 
-  _curator = require("./app/curator")(app, _eventChannel)
+  _curator = require("./app/curator")(_appHelper)
   _curator.handleEvents()
 }
 
@@ -73,9 +73,9 @@ function createWindow () {
   return newWindow
 }
 
-function createApplicationMenu(eventChannel) {
+function createApplicationMenu(appHelper, eventChannel) {
   //Setup menu items
-  var menu = require("./app/menu")(app, eventChannel)
+  var menu = require("./app/menu")(appHelper, eventChannel)
   menu.createApplicationMenu()
 }
 
@@ -84,5 +84,9 @@ function initEventChannel(_window) {
   var outboundEventChannel = _window.webContents
 
   return require("./app/eventChannel")("mainEventChannel", inboundEventChannel, outboundEventChannel)
+}
+
+function initAppHelper() {
+  return require("./app/appHelper")(app, _eventChannel)
 }
 

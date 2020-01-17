@@ -1,7 +1,7 @@
 var logger = require("./logger")
 
-module.exports = function(mainApp, eventChannel) {
-  init(mainApp, eventChannel)
+module.exports = function(appHelper) {
+  init(appHelper)
 
   var module = {
 
@@ -14,12 +14,12 @@ module.exports = function(mainApp, eventChannel) {
   return module;
 }
 
-let app
+let _appHelper
 let _eventChannel
 
-function init(_app, eventChannel) {
-  app = _app
-  _eventChannel = eventChannel
+function init(appHelper) {
+  _appHelper = appHelper
+  _eventChannel = appHelper.eventChannel()
 }
 
 const {Menu} = require('electron')
@@ -51,7 +51,7 @@ function windowMenuTemplate() {
 
 function appMenuTemplate() {
   return {
-    label: app.getName(),
+    label: _appHelper.app().getName(),
     submenu: [
       {role: 'about'},
       {type: 'separator'},
@@ -67,7 +67,7 @@ function appMenuTemplate() {
       {role: 'unhide'},
       {type: 'separator'},
 
-      quitMenuItem(app)
+      quitMenuItem()
     ]
   }
 }
@@ -97,7 +97,7 @@ function preferencesMenuItem() {
   }
 }
 
-function quitMenuItem(app) {
+function quitMenuItem() {
   return {label: 'Quit',
     click(menuItem) {
       logMenuItemEvent(menuItem['label'])
@@ -108,8 +108,7 @@ function quitMenuItem(app) {
 }
 
 function quitApplication() {
-  _eventChannel.send(_eventChannel.EVENT_PAUSE_EXHIBITION, {})
-  app.quit()
+  _appHelper.quit()
 }
 
 function editPreferences() {
