@@ -29,18 +29,15 @@ function init(appHelper) {
 }
 
 function handleEvents() {
-  _eventChannel.on(_eventChannel.EVENT_GALLERY_LOADED, function (event, eventData) {
-    logger.logEventReceived(_eventChannel.EVENT_GALLERY_LOADED, eventData)
+  _eventChannel.on(_eventChannel.EVENT_GALLERY_LOADED, function(event, eventData) {
     handleGalleryLoadedEvent(event, eventData)
   })
 
-  _eventChannel.on(_eventChannel.EVENT_SELECT_GALLERY_IMAGES, function (event, eventData) {
-    logger.logEventReceived(_eventChannel.EVENT_SELECT_GALLERY_IMAGES, eventData)
+  _eventChannel.on(_eventChannel.EVENT_SELECT_GALLERY_IMAGES, function(event, eventData) {
     handleSelectGalleryImagesEvent(event, eventData)
   })
 
-  _eventChannel.on(_eventChannel.EVENT_SAVE_PREFERENCES, function (event, eventData) {
-    logger.logEventReceived(_eventChannel.EVENT_SAVE_PREFERENCES, eventData)
+  _eventChannel.on(_eventChannel.EVENT_SAVE_PREFERENCES, function(event, eventData) {
     handleSavePreferenceEvent(event, eventData)
   })
 }

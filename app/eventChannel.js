@@ -66,6 +66,13 @@ function sendEvent(eventName, eventData) {
 }
 
 function on(eventName, handler) {
-  inboundChannel.on(eventName, handler)
+  inboundChannel.on(eventName, function (event, eventData) {
+    try {
+      logger.logEventReceived(eventName, eventData)
+        handler(event, eventData)
+    } catch (err) {
+      logger.error(err);
+    }
+  })
 }
 

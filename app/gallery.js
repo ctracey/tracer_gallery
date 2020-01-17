@@ -36,31 +36,26 @@ function init(eventChannel) {
 
 function handleEvents() {
   _eventChannel.on(_eventChannel.EVENT_INIT_GALLERY, function (event, eventData) {
-    logger.logEventReceived(_eventChannel.EVENT_INIT_GALLERY, eventData)
     handleInitGallery(event, eventData)
   })
 
   _eventChannel.on(_eventChannel.EVENT_GALLERY_IMAGES_SELECTED, function (event, eventData) {
-    logger.logEventReceived(_eventChannel.EVENT_GALLERY_IMAGES_SELECTED, eventData)
     handleGalleryImagesSelected(event, eventData)
   })
 
   _eventChannel.on(_eventChannel.EVENT_EDIT_PREFERENCES, function (event, eventData) {
-    logger.logEventReceived(_eventChannel.EVENT_EDIT_PREFERENCES, eventData)
     handleEditPreferencesEvent(event, eventData)
   })
 
   _eventChannel.on(_eventChannel.EVENT_PREFERENCES_SAVED, function (event, eventData) {
-    logger.logEventReceived(_eventChannel.EVENT_PREFERENCES_SAVED, eventData)
     handlePreferencesSavedEvent(event, eventData)
   })
 
   _eventChannel.on(_eventChannel.EVENT_PLAYPAUSE_EXHIBITION, function (event, eventData) {
-    logger.logEventReceived(_eventChannel.EVENT_PLAYPAUSE_EXHIBITION, eventData)
     handlePlayPauseEvent(event, eventData)
   })
 
-  _eventChannel.on(_eventChannel.EVENT_PAUSE_EXHIBITION, function (event, eventData) { logger.logEventReceived(_eventChannel.EVENT_PAUSE_EXHIBITION, eventData)
+  _eventChannel.on(_eventChannel.EVENT_PAUSE_EXHIBITION, function (event, eventData) {
     pauseGallery()
   })
 }
