@@ -59,6 +59,10 @@ function handleEvents() {
     logger.logEventReceived(_eventChannel.EVENT_PLAYPAUSE_EXHIBITION, eventData)
     handlePlayPauseEvent(event, eventData)
   })
+
+  _eventChannel.on(_eventChannel.EVENT_PAUSE_EXHIBITION, function (event, eventData) { logger.logEventReceived(_eventChannel.EVENT_PAUSE_EXHIBITION, eventData)
+    pauseGallery()
+  })
 }
 
 

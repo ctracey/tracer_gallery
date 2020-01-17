@@ -101,10 +101,15 @@ function quitMenuItem(app) {
   return {label: 'Quit',
     click(menuItem) {
       logMenuItemEvent(menuItem['label'])
-      app.quit()
+      quitApplication()
     },
     accelerator: 'Cmd+Q'
   }
+}
+
+function quitApplication() {
+  _eventChannel.send(_eventChannel.EVENT_PAUSE_EXHIBITION, {})
+  app.quit()
 }
 
 function editPreferences() {

@@ -7,7 +7,8 @@ const {app, BrowserWindow, Menu} = require('electron')
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
-let eventChannel
+let _eventChannel
+let _curator
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -18,7 +19,11 @@ app.on('ready', init)
 app.on('window-all-closed', function () {
   // On macOS it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
-  if (process.platform !== 'darwin') app.quit()
+  if (process.platform !== 'darwin') {
+    logger.debug('QUITTING')
+    _eventChannel.send(_eventChannel.EVENT_PAUSE_EXHIBITION, {})
+    app.quit()
+  }
 })
 
 app.on('activate', function () {
@@ -32,12 +37,12 @@ app.on('activate', function () {
 
 function init() {
   mainWindow = createWindow()
-  eventChannel = initEventChannel(mainWindow)
+  _eventChannel = initEventChannel(mainWindow)
 
-  createApplicationMenu(eventChannel)
+  createApplicationMenu(_eventChannel)
 
-  var curator = require("./app/curator")(app, eventChannel)
-  curator.handleEvents()
+  _curator = require("./app/curator")(app, _eventChannel)
+  _curator.handleEvents()
 }
 
 function createWindow () {
