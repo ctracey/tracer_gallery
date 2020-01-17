@@ -8,6 +8,10 @@ var logger = {
     debug(message)
   },
 
+  error: function (message) {
+    error(message)
+  },
+
   logEventReceived: function (eventName, eventData) {
     logEventReceived(eventName, eventData)
   },
@@ -25,6 +29,10 @@ function log(message) {
 
 function debug(message) {
   log("DEBUG: " + message)
+}
+
+function error(message) {
+  log("ERROR: " + message)
 }
 
 function logEventTriggered (eventName, eventData) {
