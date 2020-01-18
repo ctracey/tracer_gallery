@@ -31,6 +31,7 @@ function init(app, eventChannel) {
 function quit() {
   logger.log('QUITTING')
   _eventChannel.send(_eventChannel.EVENT_PAUSE_EXHIBITION, {})
+  _eventChannel.send(_eventChannel.EVENT_QUIT_APPLICATION, {})
   _app.quit()
 }
 
