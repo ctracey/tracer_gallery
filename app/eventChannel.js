@@ -63,8 +63,12 @@ function init(channelName, inboundChannel, outboundChannel) {
 }
 
 function send(eventName, eventData) {
-  _outboundChannel.send(eventName, eventData)
-  logger.logEventTriggered(eventName, eventData)
+  try {
+    _outboundChannel.send(eventName, eventData)
+    logger.logEventTriggered(eventName, eventData)
+  } catch (err) {
+    logger.error(err);
+  }
 }
 
 function on(eventName, handler) {
