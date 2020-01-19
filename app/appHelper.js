@@ -1,37 +1,43 @@
 var logger = require("./logger")
 
-module.exports = function(app, eventChannel) {
-  init(app, eventChannel)
+module.exports = {
+    class: class AppHelper {
 
-  var module = {
-    app: function() {
-      return _app
-    },
+      // PRIVATE PROPERTIES
+      _app = null
+      _eventChannel = null
+      _mainWindow = null
 
-    eventChannel: function() {
-      return _eventChannel
-    },
+      // CONSTRUCTOR
+      constructor(app, eventChannel, mainWindow) {
+        //TODO: both directional event channels? IE ability to send local messages
+        this._app = app
+        this._eventChannel = eventChannel
+        this._mainWindow = mainWindow
+      }
 
-    quit: function() {
-      quit()
-    },
-  }
+      quit() {
+        logger.log('QUITTING')
+        this._eventChannel.send(this._eventChannel.EVENT_PAUSE_EXHIBITION, {})
+        this._eventChannel.send(this._eventChannel.EVENT_CLOSE_MAIN_WINDOW, {})
+        this._app.quit()
+      }
 
-  return module;
-}
+      get app() {
+        return this._app
+      }
 
-let _app
-let _eventChannel
+      get eventChannel() {
+        return this._eventChannel
+      }
 
-function init(app, eventChannel) {
-  _app = app
-  _eventChannel = eventChannel
-}
+      get mainWindow() {
+        return this._mainWindow
+      }
 
-function quit() {
-  logger.log('QUITTING')
-  _eventChannel.send(_eventChannel.EVENT_PAUSE_EXHIBITION, {})
-  _eventChannel.send(_eventChannel.EVENT_QUIT_APPLICATION, {})
-  _app.quit()
+      set mainWindow(mainWindow) {
+        this._mainWindow = mainWindow
+      }
+    }
 }
 

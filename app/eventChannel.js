@@ -1,7 +1,7 @@
 var logger = require("./logger")
 
 const EVENT_INIT_GALLERY =            'init-gallery'
-const EVENT_QUIT_APPLICATION =        'quit-application'
+const EVENT_CLOSE_MAIN_WINDOW =       'close-mainwindow'
 const EVENT_GALLERY_LOADED =          'gallery-loaded'
 const EVENT_SAVE_PREFERENCES =        'save-preferences'
 const EVENT_PREFERENCES_SAVED =       'preferences-saved'
@@ -11,6 +11,7 @@ const EVENT_GALLERY_IMAGES_SELECTED = 'gallery-images-selected'
 const EVENT_MENU_ITEM_SELECTED =      'event-menu-item-selected'
 const EVENT_PLAYPAUSE_EXHIBITION =    'playpause-exhibition'
 const EVENT_PAUSE_EXHIBITION =        'pause-exhibition'
+const EVENT_TOGGLE_WINDOW_FRAME =     'toggle-window-frame'
 
 module.exports = function(channelName, inboundChannel, outboundChannel) {
   init(channelName, inboundChannel, outboundChannel)
@@ -19,7 +20,7 @@ module.exports = function(channelName, inboundChannel, outboundChannel) {
 
     // CONSTANTS
     EVENT_INIT_GALLERY:            EVENT_INIT_GALLERY,
-    EVENT_QUIT_APPLICATION:        EVENT_QUIT_APPLICATION,
+    EVENT_CLOSE_MAIN_WINDOW:       EVENT_CLOSE_MAIN_WINDOW,
     EVENT_GALLERY_LOADED:          EVENT_GALLERY_LOADED,
     EVENT_SAVE_PREFERENCES:        EVENT_SAVE_PREFERENCES,
     EVENT_PREFERENCES_SAVED:       EVENT_PREFERENCES_SAVED,
@@ -29,6 +30,7 @@ module.exports = function(channelName, inboundChannel, outboundChannel) {
     EVENT_MENU_ITEM_SELECTED:      EVENT_MENU_ITEM_SELECTED,
     EVENT_PLAYPAUSE_EXHIBITION:    EVENT_PLAYPAUSE_EXHIBITION,
     EVENT_PAUSE_EXHIBITION:        EVENT_PAUSE_EXHIBITION,
+    EVENT_TOGGLE_WINDOW_FRAME:     EVENT_TOGGLE_WINDOW_FRAME,
 
     // FUNCTIONS
     channelName: function() {
@@ -85,12 +87,12 @@ function on(eventName, handler) {
 function handleCoreEvents() {
   logger.log('Setting up core handlers')
 
-  on(EVENT_QUIT_APPLICATION, function (event, eventData) {
+  on(EVENT_CLOSE_MAIN_WINDOW, function (event, eventData) {
     // Remove listeners on this end of the channel
     removeAllListeners()
 
     // Send quit event to listeners on the other end of the channel
-    send(EVENT_QUIT_APPLICATION, {})
+    send(EVENT_CLOSE_MAIN_WINDOW, {})
   })
 }
 

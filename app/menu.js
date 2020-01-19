@@ -19,7 +19,7 @@ let _eventChannel
 
 function init(appHelper) {
   _appHelper = appHelper
-  _eventChannel = appHelper.eventChannel()
+  _eventChannel = appHelper.eventChannel
 }
 
 const {Menu} = require('electron')
@@ -46,12 +46,27 @@ function viewMenuTemplate() {
 }
 
 function windowMenuTemplate() {
-  return {role: 'windowMenu'}
+  return {
+    label: 'Window',
+    submenu: [
+      { role: 'minimize' },
+      { role: 'zoom' },
+
+      { type: 'separator' },
+      toggleWindowFrameMenuItem(),
+
+      { type: 'separator' },
+      { role: 'front' },
+
+      { type: 'separator' },
+      { role: 'window' }
+    ]
+  }
 }
 
 function appMenuTemplate() {
   return {
-    label: _appHelper.app().getName(),
+    label: _appHelper.app.getName(),
     submenu: [
       {role: 'about'},
       {type: 'separator'},
@@ -87,6 +102,15 @@ function galleryMenuTemplate() {
   }
 }
 
+function toggleWindowFrameMenuItem() {
+  return {label: 'Toggle Window Frame',
+      click(menuItem) {
+        logMenuItemEvent(menuItem['label'])
+        toggleWindowFrame()
+      },
+      accelerator: 'F'
+  }
+}
 function preferencesMenuItem() {
   return {label: 'Preferences...',
     click(menuItem) {
@@ -113,6 +137,10 @@ function quitApplication() {
 
 function editPreferences() {
   _eventChannel.send(_eventChannel.EVENT_EDIT_PREFERENCES, {})
+}
+
+function toggleWindowFrame() {
+  _eventChannel.send(_eventChannel.EVENT_TOGGLE_WINDOW_FRAME, {})
 }
 
 function playPauseGallery() {

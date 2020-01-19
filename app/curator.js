@@ -2,6 +2,7 @@ const fs = require('fs')
 const path = require('path')
 
 const Preferences = require("./preferences").class
+const MainWindow = require("./mainWindow").class
 const logger = require("./logger")
 
 const APP_PREFERENCES_FILE_PATH = '/preferences/preferences.json'
@@ -20,12 +21,12 @@ module.exports = function(mainApp, eventChannel) {
   return module;
 }
 
-let _app
 let _eventChannel
+let _appHelper
 
 function init(appHelper) {
-  _app = appHelper.app()
-  _eventChannel = appHelper.eventChannel()
+  _appHelper = appHelper
+  _eventChannel = appHelper.eventChannel
 }
 
 function handleEvents() {
@@ -40,6 +41,17 @@ function handleEvents() {
   _eventChannel.on(_eventChannel.EVENT_SAVE_PREFERENCES, function(event, eventData) {
     handleSavePreferenceEvent(event, eventData)
   })
+
+  _eventChannel.on(_eventChannel.EVENT_TOGGLE_WINDOW_FRAME, function (event, eventData) {
+    handleToggleWindowFrameEvent(event, eventData)
+  })
+}
+
+function handleToggleWindowFrameEvent(event, eventData) {
+  //TODO: investigate maintaining current window size & position
+  //TODO: hover show/hide drag handle
+  disableOldMainWindow()
+  setupNewMainWindow(!_appHelper.mainWindow.framed)
 }
 
 function handleGalleryLoadedEvent(event, eventData) {
@@ -104,6 +116,19 @@ function handleSavePreferenceEvent(event, eventData) {
   savePreferences(galleryPreferences)
 }
 
+function disableOldMainWindow() {
+  _eventChannel.send(_eventChannel.EVENT_CLOSE_MAIN_WINDOW, {})
+  _appHelper.mainWindow.close()
+}
+
+function setupNewMainWindow(framed) {
+  newWindow = new MainWindow({
+    'windowFile': 'index.html',
+    'framed'    : framed
+  })
+  _appHelper.mainWindow = newWindow
+}
+
 function selectRandomImages(filenames, setSize) {
   var index = 0;
   var selectedImages = []
@@ -160,7 +185,8 @@ function savePreferences(galleryPreferences) {
     preferences[currentGalleryFolder] = galleryPreferences.toJSON()
 
     fs.writeFileSync(preferencesFilePath(), JSON.stringify(preferences), 'utf-8');
-    logger.log('saved preferences to: ' + _app.getAppPath())
+    logger.log('saved preferences to: ' + _appHelper.app.getAppPath())
+
 
     _eventChannel.send(_eventChannel.EVENT_PREFERENCES_SAVED, {
       'preferencesSaved': true,
@@ -211,11 +237,13 @@ function newPreferences(galleryFolder, refreshInterval, numColumns) {
 }
 
 function preferencesFilePath() {
-  return _app.getAppPath() + APP_PREFERENCES_FILE_PATH
+  //TODO move this to appHelper
+  return _appHelper.app.getAppPath() + APP_PREFERENCES_FILE_PATH
 }
 
 function localisedDefaultFolderPath() {
-  return _app.getAppPath() + '/' + new Preferences({}).DEFAULT_FOLDER
+  //TODO move this to appHelper
+  return _appHelper.app.getAppPath() + '/' + new Preferences({}).DEFAULT_FOLDER
 }
 
 function folderExists(path) {
