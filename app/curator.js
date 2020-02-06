@@ -44,7 +44,7 @@ function handleEvents() {
 
   _eventChannel.on(_eventChannel.EVENT_TOGGLE_WINDOW_FRAME, function (event, eventData) {
     handleToggleWindowFrameEvent(event, eventData)
-  })
+  }, true)
 }
 
 function handleToggleWindowFrameEvent(event, eventData) {

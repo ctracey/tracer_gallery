@@ -10,7 +10,6 @@ module.exports = {
 
       // CONSTRUCTOR
       constructor(app, eventChannel, mainWindow) {
-        //TODO: both directional event channels? IE ability to send local messages
         this._app = app
         this._eventChannel = eventChannel
         this._mainWindow = mainWindow

@@ -58,14 +58,7 @@ function handleEvents() {
   _eventChannel.on(_eventChannel.EVENT_PAUSE_EXHIBITION, function (event, eventData) {
     pauseGallery()
   })
-
-  _eventChannel.on(_eventChannel.EVENT_TOGGLE_WINDOW_FRAME, function (event, eventData) {
-    //TODO: is there a direct menu to main process event channel
-    //redirect this event to the main process
-    _eventChannel.send(_eventChannel.EVENT_TOGGLE_WINDOW_FRAME, {})
-  })
 }
-
 
 function handleInitGallery(event, eventData) {
   galleryTitle(GALLERY_TITLE)

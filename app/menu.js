@@ -140,7 +140,7 @@ function editPreferences() {
 }
 
 function toggleWindowFrame() {
-  _eventChannel.send(_eventChannel.EVENT_TOGGLE_WINDOW_FRAME, {})
+  _eventChannel.send(_eventChannel.EVENT_TOGGLE_WINDOW_FRAME, {}, true)
 }
 
 function playPauseGallery() {

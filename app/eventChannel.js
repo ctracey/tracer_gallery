@@ -37,14 +37,13 @@ module.exports = function(channelName, inboundChannel, outboundChannel) {
       return _channelName
     },
 
-    send: function(eventName, eventData) {
-      send(eventName, eventData)
+    send: function(eventName, eventData, localEvent) {
+      send(eventName, eventData, localEvent)
     },
 
-    on: function(eventName, handler) {
-      on(eventName, handler)
-    }
-
+    on: function(eventName, handler, localEvent) {
+      on(eventName, handler, localEvent)
+    },
   }
 
   return module;
@@ -53,6 +52,8 @@ module.exports = function(channelName, inboundChannel, outboundChannel) {
 let _channelName
 let _inboundChannel
 let _outboundChannel
+
+let _localListeners = {}
 
 function init(channelName, inboundChannel, outboundChannel) {
   _channelName = channelName
@@ -64,24 +65,41 @@ function init(channelName, inboundChannel, outboundChannel) {
   logger.log('Successfully Initialised event channel: ' + _channelName);
 }
 
-function send(eventName, eventData) {
+function send(eventName, eventData, localEvent = false) {
   try {
-    _outboundChannel.send(eventName, eventData)
+    if (localEvent) {
+      _localListeners[eventName].forEach(function(handler) {
+        handler(eventName, eventData)
+      })
+    } else {
+      _outboundChannel.send(eventName, eventData)
+    }
     logger.logEventTriggered(eventName, eventData)
   } catch (err) {
     logger.error(err);
   }
 }
 
-function on(eventName, handler) {
-  _inboundChannel.on(eventName, function (event, eventData) {
+function on(eventName, handler, localEvent = false) {
+  var eventHandler = function(event, eventData) {
     try {
       logger.logEventReceived(eventName, eventData)
-        handler(event, eventData)
+      handler(event, eventData)
     } catch (err) {
       logger.error(err);
     }
-  })
+  }
+
+  if (localEvent) {
+    // register handler for local event
+    var listeners = _localListeners[eventName]
+    if (listeners == null) listeners = []
+    listeners.push(eventHandler)
+    _localListeners[eventName] = listeners
+  } else {
+    // register non local event
+    _inboundChannel.on(eventName, eventHandler)
+  }
 }
 
 function handleCoreEvents() {
