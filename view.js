@@ -1,3 +1,4 @@
+const EventChannel = require("./app/eventChannel").class
 var logger = require("./app/logger")
 
 let eventChannel
@@ -48,9 +49,11 @@ function handleActions(gallery) {
 function initEventChannel() {
   var ipc = require('electron').ipcRenderer;
 
-  var inboundEventChannel = ipc
-  var outboundEventChannel = ipc
-
-  return require("./app/eventChannel")("viewEventChannel", inboundEventChannel, outboundEventChannel)
+  return new EventChannel({
+    'channelName'         : "viewEventChannel",
+    'inboundChannel'      : ipc,
+    'outboundChannelName' : "mainProcessChannel",
+    'outboundChannel'     : ipc
+  })
 }
 

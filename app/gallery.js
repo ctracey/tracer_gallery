@@ -151,7 +151,15 @@ function displayImages(containerId, imageFilenames, galleryPath) {
     var imageFilename = imageFilenames[i];
     imagePath = galleryPath + '/' + imageFilename;
     logger.log('imagePath:' + imagePath);
-    $('#' + containerId).append(imageHTML(imagePath));
+    var imageId = 'img-' + i
+    $('#' + containerId).append(imageHTML(imageId, imagePath));
+
+    var galleryImage = document.getElementById(imageId)
+    galleryImage.addEventListener('click', function (event) {
+      var imagePath = event.target.src
+      logger.log('clicked image:' + event.target.id)
+      viewImage(imagePath)
+    })
   }
 }
 
@@ -189,6 +197,12 @@ function showSettingsControls() {
   $('#settings-container').show()
 }
 
+function viewImage(imagePath) {
+  _eventChannel.send(_eventChannel.EVENT_VIEW_IMAGE, {
+    'imagePath': imagePath
+  })
+}
+
 function hideSettingsControls() {
   logger.log('hiding settings')
   playGallery()
@@ -213,8 +227,8 @@ function galleryExists(galleryId) {
   return $('#' + galleryId).length
 }
 
-function imageHTML(imagePath) {
-  return "<div class='gallery-image'><img src='" + imagePath + "'/></div>"
+function imageHTML(id, imagePath) {
+  return "<div class='gallery-image'><img id='" + id + "' src='" + imagePath + "'/></div>"
 }
 
 function galleryFolder() {

@@ -2,10 +2,8 @@ const fs = require('fs')
 const path = require('path')
 
 const Preferences = require("./preferences").class
-const MainWindow = require("./mainWindow").class
+const Window = require("./window").class
 const logger = require("./logger")
-
-const APP_PREFERENCES_FILE_PATH = '/preferences/preferences.json'
 
 module.exports = function(mainApp, eventChannel) {
   init(mainApp, eventChannel)
@@ -23,6 +21,9 @@ module.exports = function(mainApp, eventChannel) {
 
 let _eventChannel
 let _appHelper
+
+let _imageViewerWindow
+let _imageViewerPath
 
 function init(appHelper) {
   _appHelper = appHelper
@@ -45,13 +46,20 @@ function handleEvents() {
   _eventChannel.on(_eventChannel.EVENT_TOGGLE_WINDOW_FRAME, function (event, eventData) {
     handleToggleWindowFrameEvent(event, eventData)
   }, true)
+
+  _eventChannel.on(_eventChannel.EVENT_VIEW_IMAGE, function (event, eventData) {
+    handleViewImageEvent(event, eventData)
+  })
+
+  _eventChannel.on(_eventChannel.EVENT_IMAGEVIEW_LOADED, function(event, eventData) {
+    handleImageViewLoadedEvent(event, eventData)
+  })
 }
 
 function handleToggleWindowFrameEvent(event, eventData) {
-  //TODO: investigate maintaining current window size & position
-  //TODO: hover show/hide drag handle
+  var framed = !_appHelper.mainWindow.framed
   disableOldMainWindow()
-  setupNewMainWindow(!_appHelper.mainWindow.framed)
+  setupNewMainWindow(framed)
 }
 
 function handleGalleryLoadedEvent(event, eventData) {
@@ -61,7 +69,7 @@ function handleGalleryLoadedEvent(event, eventData) {
   var galleryFolder = recentPreferences.galleryFolder
   if (recentPreferences.usingDefaults()) {
     logger.log('Using localised default preferences')
-    galleryFolder = localisedDefaultFolderPath()
+    galleryFolder = _appHelper.localisedDefaultFolderPath()
   } else {
     logger.log('Using saved preferences')
   }
@@ -116,17 +124,52 @@ function handleSavePreferenceEvent(event, eventData) {
   savePreferences(galleryPreferences)
 }
 
+function handleViewImageEvent(event, eventData) {
+  _imageViewerPath = eventData['imagePath']
+  logger.log('Create imageViewer for: ' + _imageViewerPath)
+
+  // close existing imageViewer windows
+  if (_imageViewerWindow) {
+    logger.log('Closing existing image viewer: ' + _imageViewerPath)
+    _imageViewerWindow.close()
+  }
+
+  //create imageViewer Window
+  _imageViewerWindow = new Window({
+    'height'    : 800,
+    'width'     : 800,
+    'windowFile': 'imageView.html',
+    'framed'    : true,
+  })
+  _eventChannel.addOutboundChannel('imageViewerChannel', _imageViewerWindow.inboundEventChannel)
+}
+
+function handleImageViewLoadedEvent(event, eventData) {
+  try {
+    _eventChannel.send(_eventChannel.EVENT_INIT_IMAGEVIEW, {
+      'imagePath': _imageViewerPath
+    })
+  }
+  catch (err) {
+    logger.log(err);
+  }
+}
+
 function disableOldMainWindow() {
   _eventChannel.send(_eventChannel.EVENT_CLOSE_MAIN_WINDOW, {})
+  _eventChannel.removeOutboundChannel(_appHelper.MAIN_WINDOW_CHANNEL_NAME)
   _appHelper.mainWindow.close()
 }
 
 function setupNewMainWindow(framed) {
-  newWindow = new MainWindow({
+  logger.log('Setting up new window')
+  newWindow = new Window({
     'windowFile': 'index.html',
     'framed'    : framed
   })
+
   _appHelper.mainWindow = newWindow
+  _eventChannel.addOutboundChannel(_appHelper.MAIN_WINDOW_CHANNEL_NAME, _appHelper.mainWindow.inboundEventChannel)
 }
 
 function selectRandomImages(filenames, setSize) {
@@ -184,7 +227,7 @@ function savePreferences(galleryPreferences) {
     preferences['latestPreferencesKey'] = currentGalleryFolder
     preferences[currentGalleryFolder] = galleryPreferences.toJSON()
 
-    fs.writeFileSync(preferencesFilePath(), JSON.stringify(preferences), 'utf-8');
+    fs.writeFileSync(_appHelper.preferencesFilePath(), JSON.stringify(preferences), 'utf-8');
     logger.log('saved preferences to: ' + _appHelper.app.getAppPath())
 
 
@@ -207,11 +250,13 @@ function validatePreferences(preferences) {
   if (!folderExists(preferences.galleryFolder)) throw 'Folder does not exist: "' + preferences.galleryFolder + '"'
 }
 
+//TODO: Do I want file handling in Curator
 function loadRecentPreferences() {
   var recentPreferences = {}
 
   try {
-    var data = fs.readFileSync(preferencesFilePath());
+    logger.log('Reading preferences from: ' + _appHelper.preferencesFilePath())
+    var data = fs.readFileSync(_appHelper.preferencesFilePath());
     if (data != null) {
       logger.log("Synchronous read: " + data.toString());
       var preferences = JSON.parse(data.toString())
@@ -234,16 +279,6 @@ function newPreferences(galleryFolder, refreshInterval, numColumns) {
     'refreshInterval': refreshInterval,
     'numColumns': numColumns
   })
-}
-
-function preferencesFilePath() {
-  //TODO move this to appHelper
-  return _appHelper.app.getAppPath() + APP_PREFERENCES_FILE_PATH
-}
-
-function localisedDefaultFolderPath() {
-  //TODO move this to appHelper
-  return _appHelper.app.getAppPath() + '/' + new Preferences({}).DEFAULT_FOLDER
 }
 
 function folderExists(path) {

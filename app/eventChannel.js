@@ -13,109 +13,126 @@ const EVENT_PLAYPAUSE_EXHIBITION =    'playpause-exhibition'
 const EVENT_PAUSE_EXHIBITION =        'pause-exhibition'
 const EVENT_TOGGLE_WINDOW_FRAME =     'toggle-window-frame'
 
-module.exports = function(channelName, inboundChannel, outboundChannel) {
-  init(channelName, inboundChannel, outboundChannel)
+const EVENT_VIEW_IMAGE =              'view-image'
+const EVENT_IMAGEVIEW_LOADED =        'imageview-loaded'
+const EVENT_INIT_IMAGEVIEW =          'init-imageview'
 
-  var module = {
+module.exports = {
+  class: class EventChannel {
 
-    // CONSTANTS
-    EVENT_INIT_GALLERY:            EVENT_INIT_GALLERY,
-    EVENT_CLOSE_MAIN_WINDOW:       EVENT_CLOSE_MAIN_WINDOW,
-    EVENT_GALLERY_LOADED:          EVENT_GALLERY_LOADED,
-    EVENT_SAVE_PREFERENCES:        EVENT_SAVE_PREFERENCES,
-    EVENT_PREFERENCES_SAVED:       EVENT_PREFERENCES_SAVED,
-    EVENT_EDIT_PREFERENCES:        EVENT_EDIT_PREFERENCES,
-    EVENT_SELECT_GALLERY_IMAGES:   EVENT_SELECT_GALLERY_IMAGES,
-    EVENT_GALLERY_IMAGES_SELECTED: EVENT_GALLERY_IMAGES_SELECTED,
-    EVENT_MENU_ITEM_SELECTED:      EVENT_MENU_ITEM_SELECTED,
-    EVENT_PLAYPAUSE_EXHIBITION:    EVENT_PLAYPAUSE_EXHIBITION,
-    EVENT_PAUSE_EXHIBITION:        EVENT_PAUSE_EXHIBITION,
-    EVENT_TOGGLE_WINDOW_FRAME:     EVENT_TOGGLE_WINDOW_FRAME,
+    get EVENT_INIT_GALLERY () { return EVENT_INIT_GALLERY }
+    get EVENT_CLOSE_MAIN_WINDOW () { return EVENT_CLOSE_MAIN_WINDOW }
+    get EVENT_GALLERY_LOADED () { return EVENT_GALLERY_LOADED }
+    get EVENT_SAVE_PREFERENCES () { return EVENT_SAVE_PREFERENCES }
+    get EVENT_PREFERENCES_SAVED () { return EVENT_PREFERENCES_SAVED }
+    get EVENT_EDIT_PREFERENCES () { return EVENT_EDIT_PREFERENCES }
+    get EVENT_SELECT_GALLERY_IMAGES () { return EVENT_SELECT_GALLERY_IMAGES }
+    get EVENT_GALLERY_IMAGES_SELECTED () { return EVENT_GALLERY_IMAGES_SELECTED }
+    get EVENT_MENU_ITEM_SELECTED () { return EVENT_MENU_ITEM_SELECTED }
+    get EVENT_PLAYPAUSE_EXHIBITION () { return EVENT_PLAYPAUSE_EXHIBITION }
+    get EVENT_PAUSE_EXHIBITION () { return EVENT_PAUSE_EXHIBITION }
+    get EVENT_TOGGLE_WINDOW_FRAME () { return EVENT_TOGGLE_WINDOW_FRAME }
+
+    get EVENT_VIEW_IMAGE () { return EVENT_VIEW_IMAGE }
+    get EVENT_IMAGEVIEW_LOADED () { return EVENT_IMAGEVIEW_LOADED }
+    get EVENT_INIT_IMAGEVIEW () { return EVENT_INIT_IMAGEVIEW }
+
+    // PRIVATE PROPERTIES
+    _channelName = null
+    _inboundChannel = null
+    _outboundChannels = {}
+    _localListeners = {}
+
+    // CONSTRUCTOR
+    constructor(params) {
+      if (!params['channelName'])         throw 'Cannot initialise EventChannel - Missing required param: channelName'
+      if (!params['inboundChannel'])      throw 'Cannot initialise EventChannel - Missing required param: inboundChannel'
+      if (!params['outboundChannelName']) throw 'Cannot initialise EventChannel - Missing required param: outboundChannelName'
+      if (!params['outboundChannel'])     throw 'Cannot initialise EventChannel - Missing required param: outboundChannel'
+
+      this._channelName = params['channelName']
+      this._inboundChannel = params['inboundChannel']
+      this._outboundChannels[params['outboundChannelName']] = params['outboundChannel']
+
+      this.handleCoreEvents()
+      logger.log('Successfully Initialised event channel: ' + this.channelName);
+    }
 
     // FUNCTIONS
-    channelName: function() {
-      return _channelName
-    },
+    send(eventName, eventData, localEvent = false) {
+      try {
+        if (localEvent) {
+          this._localListeners[eventName].forEach(function(handler) {
+            handler(eventName, eventData)
+          })
+        } else {
+          //send event to all outbound channels
+          var outboundChannelKeys = Object.keys(this._outboundChannels)
+          for (var i=0; i < outboundChannelKeys.length; i++) {
+            logger.log('Sending ' + eventName + ' to ' + outboundChannelKeys[i])
+            var outboundChannel = this._outboundChannels[outboundChannelKeys[i]]
+            outboundChannel.send(eventName, eventData)
+          }
+        }
+        logger.logEventTriggered(eventName, eventData)
+      } catch (err) {
+        logger.error(err);
+      }
+    }
 
-    send: function(eventName, eventData, localEvent) {
-      send(eventName, eventData, localEvent)
-    },
+    on(eventName, handler, localEvent = false) {
+      var eventHandler = function(event, eventData) {
+        try {
+          logger.logEventReceived(eventName, eventData)
+            handler(event, eventData)
+        } catch (err) {
+          logger.error(err);
+        }
+      }
 
-    on: function(eventName, handler, localEvent) {
-      on(eventName, handler, localEvent)
-    },
-  }
+      if (localEvent) {
+        // register handler for local event
+        var listeners = this._localListeners[eventName]
+          if (listeners == null) listeners = []
+            listeners.push(eventHandler)
+              this._localListeners[eventName] = listeners
+      } else {
+        // register non local event
+        this._inboundChannel.on(eventName, eventHandler)
+      }
+    }
 
-  return module;
-}
+    addOutboundChannel(outboundChannelName, outboundChannel) {
+      logger.log('Adding outbound channel: ' + outboundChannelName + ' to channel: ' + this._channelName)
+      this._outboundChannels[outboundChannelName] = outboundChannel
+    }
 
-let _channelName
-let _inboundChannel
-let _outboundChannel
+    removeOutboundChannel(outboundChannelName) {
+      logger.log('Removing outbound channel: ' + outboundChannelName + ' from channel: ' + this._channelName)
+      delete this._outboundChannels[outboundChannelName]
+    }
 
-let _localListeners = {}
+    handleCoreEvents() {
+      logger.log('Setting up core handlers')
+      this.on(EVENT_CLOSE_MAIN_WINDOW, function (event, eventData) {
+        logger.log('Closing main window')
 
-function init(channelName, inboundChannel, outboundChannel) {
-  _channelName = channelName
-  _inboundChannel = inboundChannel
-  _outboundChannel = outboundChannel
+        // Remove listeners on this end of the channel
+        this.removeAllListeners()
 
-  handleCoreEvents()
-
-  logger.log('Successfully Initialised event channel: ' + _channelName);
-}
-
-function send(eventName, eventData, localEvent = false) {
-  try {
-    if (localEvent) {
-      _localListeners[eventName].forEach(function(handler) {
-        handler(eventName, eventData)
+        // Send quit event to listeners on the other end of the channel
+        this.send(EVENT_CLOSE_MAIN_WINDOW, {})
       })
-    } else {
-      _outboundChannel.send(eventName, eventData)
     }
-    logger.logEventTriggered(eventName, eventData)
-  } catch (err) {
-    logger.error(err);
-  }
-}
 
-function on(eventName, handler, localEvent = false) {
-  var eventHandler = function(event, eventData) {
-    try {
-      logger.logEventReceived(eventName, eventData)
-      handler(event, eventData)
-    } catch (err) {
-      logger.error(err);
+    removeAllListeners() {
+      logger.log('Disabling listeners for channel: ' + this.channelName)
+      this._inboundChannel.removeAllListeners()
+    }
+
+    get channelName() {
+      return this._channelName
     }
   }
-
-  if (localEvent) {
-    // register handler for local event
-    var listeners = _localListeners[eventName]
-    if (listeners == null) listeners = []
-    listeners.push(eventHandler)
-    _localListeners[eventName] = listeners
-  } else {
-    // register non local event
-    _inboundChannel.on(eventName, eventHandler)
-  }
-}
-
-function handleCoreEvents() {
-  logger.log('Setting up core handlers')
-
-  on(EVENT_CLOSE_MAIN_WINDOW, function (event, eventData) {
-    // Remove listeners on this end of the channel
-    removeAllListeners()
-
-    // Send quit event to listeners on the other end of the channel
-    send(EVENT_CLOSE_MAIN_WINDOW, {})
-  })
-}
-
-function removeAllListeners() {
-  logger.log('Disabling listeners for channel: ' + _channelName)
-  _inboundChannel.removeAllListeners()
 }
 

@@ -1,7 +1,7 @@
 //Modules to control application life and create native browser window
 
 var logger = require("./app/logger")
-var MainWindow = require("./app/mainWindow").class
+var Window = require("./app/window").class
 var AppHelper = require("./app/appHelper").class
 
 const {app} = require('electron')
@@ -31,6 +31,11 @@ app.on('activate', function () {
   if (_mainWindow === null) init()
 })
 
+process.on('uncaughtException', function (error) {
+  logger.error(error)
+  app.quit()
+})
+
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
 
@@ -43,7 +48,7 @@ function init() {
 }
 
 function createMainWindow() {
-  return new MainWindow({
+  return new Window({
     'windowFile': 'index.html',
     'framed'    : true
   })
@@ -55,7 +60,7 @@ function setupGalleryCurator() {
 }
 
 function initAppHelper() {
-  return new AppHelper(app, _mainWindow.eventChannel, _mainWindow)
+  return new AppHelper(app, _mainWindow)
 }
 
 function createApplicationMenu(appHelper) {
