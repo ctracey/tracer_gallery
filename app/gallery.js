@@ -151,7 +151,7 @@ function displayImages(containerId, imageFilenames, galleryPath) {
     var imageFilename = imageFilenames[i];
     imagePath = galleryPath + '/' + imageFilename;
     logger.log('imagePath:' + imagePath);
-    var imageId = 'img-' + i
+    var imageId = 'img-' + containerId + '-' + i
     $('#' + containerId).append(imageHTML(imageId, imagePath));
 
     var galleryImage = document.getElementById(imageId)
