@@ -4,12 +4,19 @@ var logger = require('./logger')
 
 const APP_PREFERENCES_FILE_PATH = '/preferences/preferences.json'
 const MAIN_WINDOW_CHANNEL_NAME = 'mainWindowChannel'
+const MAIN_WINDOW_NAME = 'mainWindow'
+const IMAGE_VIEWER_WINDOW_CHANNEL_NAME = 'imageViewerWindowChannel'
+const IMAGE_VIEWER_WINDOW_NAME = 'imageViewerWindow'
 
 module.exports = {
-    class: class AppHelper {
+    // CONSTANTS
+    APP_PREFERENCES_FILE_PATH        : APP_PREFERENCES_FILE_PATH,
+    MAIN_WINDOW_CHANNEL_NAME         : MAIN_WINDOW_CHANNEL_NAME,
+    MAIN_WINDOW_NAME                 : MAIN_WINDOW_NAME,
+    IMAGE_VIEWER_WINDOW_CHANNEL_NAME : IMAGE_VIEWER_WINDOW_CHANNEL_NAME,
+    IMAGE_VIEWER_WINDOW_NAME         : IMAGE_VIEWER_WINDOW_NAME,
 
-      // CONSTANTS
-      get MAIN_WINDOW_CHANNEL_NAME () { return MAIN_WINDOW_CHANNEL_NAME }
+    class: class AppHelper {
 
       // PRIVATE PROPERTIES
       _app = null
@@ -28,7 +35,7 @@ module.exports = {
         this._eventChannel = new EventChannel({
           'channelName'         : "mainEventChannel",
           'inboundChannel'      : require('electron').ipcMain,
-          'outboundChannelName' : this.MAIN_WINDOW_CHANNEL_NAME,
+          'outboundChannelName' : MAIN_WINDOW_CHANNEL_NAME,
           'outboundChannel'     : this._mainWindow.inboundEventChannel
         })
       }

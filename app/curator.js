@@ -2,6 +2,7 @@ const fs = require('fs')
 const path = require('path')
 
 const Preferences = require("./preferences").class
+const AppHelper = require("./appHelper")
 const Window = require("./window").class
 const logger = require("./logger")
 
@@ -136,12 +137,17 @@ function handleViewImageEvent(event, eventData) {
 
   //create imageViewer Window
   _imageViewerWindow = new Window({
+    'name'      : AppHelper.IMAGE_VIEWER_WINDOW_NAME,
     'height'    : 800,
     'width'     : 800,
     'windowFile': 'imageView.html',
     'framed'    : true,
   })
-  _eventChannel.addOutboundChannel('imageViewerChannel', _imageViewerWindow.inboundEventChannel)
+  _imageViewerWindow.onClose(_imageViewerWindow.name, function () {
+    _eventChannel.removeOutboundChannel(AppHelper.IMAGE_VIEWER_WINDOW_CHANNEL_NAME)
+    _imageViewerWindow = null
+  })
+  _eventChannel.addOutboundChannel(AppHelper.IMAGE_VIEWER_WINDOW_CHANNEL_NAME, _imageViewerWindow.inboundEventChannel)
 }
 
 function handleImageViewLoadedEvent(event, eventData) {
@@ -157,19 +163,23 @@ function handleImageViewLoadedEvent(event, eventData) {
 
 function disableOldMainWindow() {
   _eventChannel.send(_eventChannel.EVENT_CLOSE_MAIN_WINDOW, {})
-  _eventChannel.removeOutboundChannel(_appHelper.MAIN_WINDOW_CHANNEL_NAME)
+  _eventChannel.removeOutboundChannel(AppHelper.MAIN_WINDOW_CHANNEL_NAME)
   _appHelper.mainWindow.close()
 }
 
 function setupNewMainWindow(framed) {
   logger.log('Setting up new window')
   newWindow = new Window({
+    'name'      : AppHelper.MAIN_WINDOW_NAME,
     'windowFile': 'index.html',
     'framed'    : framed
   })
+  newWindow.onClose(newWindow.name, function () {
+    newWindow = null
+  })
 
   _appHelper.mainWindow = newWindow
-  _eventChannel.addOutboundChannel(_appHelper.MAIN_WINDOW_CHANNEL_NAME, _appHelper.mainWindow.inboundEventChannel)
+  _eventChannel.addOutboundChannel(AppHelper.MAIN_WINDOW_CHANNEL_NAME, _appHelper.mainWindow.inboundEventChannel)
 }
 
 function selectRandomImages(filenames, setSize) {

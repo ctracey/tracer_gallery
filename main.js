@@ -2,7 +2,7 @@
 
 var logger = require("./app/logger")
 var Window = require("./app/window").class
-var AppHelper = require("./app/appHelper").class
+var AppHelper = require("./app/appHelper")
 
 const {app} = require('electron')
 
@@ -48,10 +48,16 @@ function init() {
 }
 
 function createMainWindow() {
-  return new Window({
+  var newWindow = new Window({
+    'name'      : AppHelper.MAIN_WINDOW_NAME,
     'windowFile': 'index.html',
     'framed'    : true
   })
+  newWindow.onClose(newWindow.name, function () {
+    newWindow = null
+  })
+
+  return newWindow
 }
 
 function setupGalleryCurator() {
@@ -60,7 +66,8 @@ function setupGalleryCurator() {
 }
 
 function initAppHelper() {
-  return new AppHelper(app, _mainWindow)
+  //TODO: use class and constants for other classes
+  return new AppHelper.class(app, _mainWindow)
 }
 
 function createApplicationMenu(appHelper) {
