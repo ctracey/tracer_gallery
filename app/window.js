@@ -37,10 +37,6 @@ module.exports = {
         // and load the index.html of the app.
         newWindow.loadFile(windowFile)
 
-        //TODO: what would this do?
-        // Open the DevTools.
-        // newWindow.webContents.openDevTools()
-
         return newWindow
       }
 
