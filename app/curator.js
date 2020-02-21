@@ -93,7 +93,7 @@ function handleGalleryLoadedEvent(event, eventData) {
     })
   }
   catch (err) {
-    logger.log(err);
+    logger.error(err);
   }
 }
 
@@ -120,7 +120,7 @@ function handleSelectGalleryImagesEvent(event, eventData) {
     });
   }
   catch (err) {
-    logger.log(err);
+    logger.error(err);
   }
 }
 
@@ -161,7 +161,7 @@ function handleImageViewLoadedEvent(event, eventData) {
     })
   }
   catch (err) {
-    logger.log(err);
+    logger.error(err);
   }
 }
 
@@ -259,7 +259,7 @@ function savePreferences(galleryPreferences) {
     })
   } catch(error) {
     // Handle validation errors
-    logger.log('ERROR: Failed to save preferences: ' + error);
+    logger.error('Failed to save preferences: ' + error);
     _eventChannel.send(_eventChannel.EVENT_PREFERENCES_SAVED, {
       'preferencesSaved': false,
       'errorMessage': error,
@@ -289,7 +289,7 @@ function loadRecentPreferences() {
       logger.log('Preferences loaded: ' + JSON.stringify(recentPreferences))
     }
   } catch(error) {
-    logger.log('failed to read preferences from file' + error)
+    logger.error('failed to read preferences from file. ' + error)
   }
 
   return recentPreferences

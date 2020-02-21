@@ -18,7 +18,7 @@ $(() => {
     logger.log('Gallery loaded');
     eventChannel.send(eventChannel.EVENT_GALLERY_LOADED, {})
   } catch (err) {
-    logger.log('ERROR: ' + err);
+    logger.error(err);
   }
 })
 

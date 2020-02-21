@@ -17,7 +17,7 @@ $(() => {
     logger.log('Image View loaded');
     eventChannel.send(eventChannel.EVENT_IMAGEVIEW_LOADED, {})
   } catch (err) {
-    logger.log('ERROR: ' + err);
+    logger.error(err);
   }
 })
 
