@@ -1,3 +1,7 @@
+const LEVEL_DEBUG = 'DEBUG'
+const LEVEL_WARNING = 'WARNING'
+const LEVEL_ERROR = 'ERROR'
+
 var logger = {
 
   log: function (message) {
@@ -10,6 +14,10 @@ var logger = {
 
   error: function (message) {
     error(message)
+  },
+
+  warning: function (message) {
+    warning(message)
   },
 
   logEventReceived: function (eventName, eventData) {
@@ -28,11 +36,20 @@ function log(message) {
 }
 
 function debug(message) {
-  log("DEBUG: " + message)
+  logLevel(LEVEL_DEBUG, message)
 }
 
 function error(message) {
-  log("ERROR: " + message)
+  logLevel(LEVEL_ERROR, message)
+}
+
+//TODO: find other warning level log messages
+function warning(message) {
+  logLevel(LEVEL_WARNING, message)
+}
+
+function logLevel(level, message) {
+  log(level + ": " + message)
 }
 
 function logEventTriggered (eventName, eventData) {

@@ -16,6 +16,7 @@ const EVENT_TOGGLE_WINDOW_FRAME =     'toggle-window-frame'
 const EVENT_VIEW_IMAGE =              'view-image'
 const EVENT_IMAGEVIEW_LOADED =        'imageview-loaded'
 const EVENT_INIT_IMAGEVIEW =          'init-imageview'
+const EVENT_CLOSE_IMAGEVIEW =         'close-imageview'
 
 module.exports = {
   class: class EventChannel {
@@ -36,6 +37,7 @@ module.exports = {
     get EVENT_VIEW_IMAGE () { return EVENT_VIEW_IMAGE }
     get EVENT_IMAGEVIEW_LOADED () { return EVENT_IMAGEVIEW_LOADED }
     get EVENT_INIT_IMAGEVIEW () { return EVENT_INIT_IMAGEVIEW }
+    get EVENT_CLOSE_IMAGEVIEW () { return EVENT_CLOSE_IMAGEVIEW }
 
     // PRIVATE PROPERTIES
     _channelName = null
@@ -62,9 +64,13 @@ module.exports = {
     send(eventName, eventData, localEvent = false) {
       try {
         if (localEvent) {
-          this._localListeners[eventName].forEach(function(handler) {
-            handler(eventName, eventData)
-          })
+          try {
+            this._localListeners[eventName].forEach(function(handler) {
+              handler(eventName, eventData)
+            })
+          } catch (err) {
+            logger.warning('EventChannel: ' + this._channelName + ' has no local listeners for local event: ' + eventName)
+          }
         } else {
           //send event to all outbound channels
           var outboundChannelKeys = Object.keys(this._outboundChannels)

@@ -55,6 +55,10 @@ function handleEvents() {
   _eventChannel.on(_eventChannel.EVENT_IMAGEVIEW_LOADED, function(event, eventData) {
     handleImageViewLoadedEvent(event, eventData)
   })
+
+  _eventChannel.on(_eventChannel.EVENT_CLOSE_IMAGEVIEW, function(event, eventData) {
+    handleImageViewClosedEvent(event, eventData)
+  }, true)
 }
 
 function handleToggleWindowFrameEvent(event, eventData) {
@@ -159,6 +163,14 @@ function handleImageViewLoadedEvent(event, eventData) {
   catch (err) {
     logger.log(err);
   }
+}
+
+function handleImageViewClosedEvent(event, eventData) {
+  logger.debug('HANDLING IMG VIEWER CLOSE')
+
+  _imageViewerWindow.close()
+  _imageViewerWindow = null
+  _eventChannel.removeOutboundChannel(AppHelper.IMAGE_VIEWER_WINDOW_CHANNEL_NAME)
 }
 
 function disableOldMainWindow() {

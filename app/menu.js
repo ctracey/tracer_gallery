@@ -97,6 +97,13 @@ function galleryMenuTemplate() {
           playPauseGallery()
         },
         accelerator: 'P'
+      },
+      {label: 'Close Image Viewer',
+        click(menuItem) {
+          logMenuItemEvent(menuItem['label'])
+          closeImageViewer()
+        },
+        accelerator: 'Cmd+W'
       }
     ]
   }
@@ -141,6 +148,10 @@ function editPreferences() {
 
 function toggleWindowFrame() {
   _eventChannel.send(_eventChannel.EVENT_TOGGLE_WINDOW_FRAME, {}, true)
+}
+
+function closeImageViewer() {
+  _eventChannel.send(_eventChannel.EVENT_CLOSE_IMAGEVIEW, {}, true)
 }
 
 function playPauseGallery() {
