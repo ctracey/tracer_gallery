@@ -15,17 +15,41 @@ body {
   padding: 0px;
 }
 
+.viewer-image-info {
+  height: calc(5% - 1px);
+  width: 100%;
+  color: #6d6e6d;
+  border-bottom: 1px solid #474747;
+}
+
+.viewer-image-info__folder {
+  padding: 5px;
+  display: block;
+}
+
+.viewer-image-info__folder-path {
+  font-size: 12px;
+  padding: 10px;
+  display: inline-block;
+}
+
+.viewer-image-info__folder-icon {
+  height: 20px;
+  padding: 5px;
+  display: block;
+  float: left;
+}
+
 /* With an added fake (pseudo) element it works. IMPORTANT: There must be no spaces between the elements in the source, else it doesn't work! */
 .imgContainer {
-  height:100%;
+  height: 95%;
   margin: 0px;
-  padding: 10px;
 }
 
 /* Fake (pseudo) element, that enables vertical-align */
 .imgContainer-landscape:before {
   content: "";
-  height: 100%;
+  height: 95%;
 
   display: inline-block;
   vertical-align: middle;
@@ -36,7 +60,8 @@ body {
 
 /* By default vertical-align ist not possible, only different elements can be vertically aligned among eachother */
 .viewerImg-landscape {
-  width: 100%;
+  width: calc(100% - 20px);
+  padding: 10px;
 
   display: inline-block;
   vertical-align: middle;
@@ -45,6 +70,7 @@ body {
 .viewerImg-portrait {
   height: calc(100% - 20px);
   margin: auto;
+  padding: 10px;
   display: block;
 }
 
