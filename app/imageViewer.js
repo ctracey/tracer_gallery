@@ -37,14 +37,9 @@ function handleInitImageView(event, eventData) {
   })
 
   viewerImage().attr('src', eventData['imagePath'])
-  viewerImageInfo().html(eventData['imagePath'].replace('file://', ''))
 }
 
 function viewerImage() {
   return $('#viewer-image')
-}
-
-function viewerImageInfo() {
-  return $('#viewer-image-info')
 }
 

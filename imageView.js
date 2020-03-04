@@ -17,12 +17,20 @@ $(() => {
     logger.log('Image View loaded');
     eventChannel.send(eventChannel.EVENT_IMAGEVIEW_LOADED, {})
   } catch (err) {
-    logger.error(err);
+    logger.error(err)
   }
 })
 
 function handleActions(imageViewer) {
   // HANDLE JQUERY ACTIONS
+  // TODO: refactor this
+  //   handler, events?, class names, icon pointer
+  const {shell} = require('electron')
+  var folderButton = document.getElementById('folderButton')
+  folderButton.addEventListener('click', function (event) {
+    var viewerImage = document.getElementById('viewer-image')
+    shell.showItemInFolder(viewerImage.src.replace('file://', ''))
+  })
 }
 
 function initEventChannel() {

@@ -27,15 +27,11 @@ body {
   display: block;
 }
 
-.viewer-image-info__folder-path {
-  font-size: 12px;
-  padding: 10px;
-  display: inline-block;
-}
-
 .viewer-image-info__folder-icon {
   height: 20px;
   padding: 5px;
+  cursor: pointer;
+
   display: block;
   float: left;
 }
