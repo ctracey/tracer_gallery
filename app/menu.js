@@ -1,4 +1,11 @@
+const {Menu} = require('electron')
 var logger = require("./logger")
+
+const ACCELERATOR_PLAYPAUSE = 'Cmd+P'
+const ACCELERATOR_CLOSEIMAGEVIEWER = 'Cmd+W'
+const ACCELERATOR_TOGGLEWINDOWFRAME = 'Cmd+F'
+const ACCELERATOR_PREFERENCES = 'Cmd+,'
+const ACCELERATOR_QUIT = 'Cmd+Q'
 
 module.exports = function(appHelper) {
   init(appHelper)
@@ -21,8 +28,6 @@ function init(appHelper) {
   _appHelper = appHelper
   _eventChannel = appHelper.eventChannel
 }
-
-const {Menu} = require('electron')
 
 function createApplicationMenu() {
   var menuTemplate = []
@@ -96,14 +101,14 @@ function galleryMenuTemplate() {
           logMenuItemEvent(menuItem['label'])
           playPauseGallery()
         },
-        accelerator: 'P'
+        accelerator: ACCELERATOR_PLAYPAUSE
       },
       {label: 'Close Image Viewer',
         click(menuItem) {
           logMenuItemEvent(menuItem['label'])
           closeImageViewer()
         },
-        accelerator: 'Cmd+W'
+        accelerator: ACCELERATOR_CLOSEIMAGEVIEWER
       }
     ]
   }
@@ -115,7 +120,7 @@ function toggleWindowFrameMenuItem() {
         logMenuItemEvent(menuItem['label'])
         toggleWindowFrame()
       },
-      accelerator: 'F'
+      accelerator: ACCELERATOR_TOGGLEWINDOWFRAME
   }
 }
 function preferencesMenuItem() {
@@ -124,7 +129,7 @@ function preferencesMenuItem() {
       logMenuItemEvent(menuItem['label'])
         editPreferences()
     },
-    accelerator: 'Cmd+,'
+    accelerator: ACCELERATOR_PREFERENCES
   }
 }
 
@@ -134,7 +139,7 @@ function quitMenuItem() {
       logMenuItemEvent(menuItem['label'])
       quitApplication()
     },
-    accelerator: 'Cmd+Q'
+    accelerator: ACCELERATOR_QUIT
   }
 }
 
