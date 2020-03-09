@@ -1,22 +1,22 @@
 const EventChannel = require("./app/eventChannel").class
 var logger = require("./app/logger")
 
-let eventChannel
+let _eventChannel
 
 // Run this function after the page has loaded
 $(() => {
   logger.log('Loading gallery ...')
   try {
     var galleryPaused = false
-    eventChannel = initEventChannel()
+    _eventChannel = initEventChannel()
 
-    var gallery = require("./app/gallery")(eventChannel)
+    var gallery = require("./app/gallery")(_eventChannel)
     gallery.handleEvents()
 
     handleActions(gallery)
 
     logger.log('Gallery loaded');
-    eventChannel.send(eventChannel.EVENT_GALLERY_LOADED, {})
+    _eventChannel.send(_eventChannel.EVENT_GALLERY_LOADED, {})
   } catch (err) {
     logger.error(err);
   }
@@ -31,6 +31,11 @@ function handleActions(gallery) {
   const cancelButton = document.getElementById('cancelButton')
   cancelButton.addEventListener('click', function () {
     gallery.cancelPreferencesAction();
+  })
+
+  const folderPickerButton = document.getElementById('settings-container__folder-picker')
+  folderPickerButton.addEventListener('click', function () {
+    gallery.pickPreferencesFolderAction()
   })
 
   $(document).on('keydown', function(event) {

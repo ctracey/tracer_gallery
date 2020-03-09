@@ -1,5 +1,6 @@
 const fs = require('fs')
 const path = require('path')
+const {dialog} = require('electron')
 
 const Preferences = require("./preferences").class
 const AppHelper = require("./appHelper")
@@ -38,6 +39,10 @@ function handleEvents() {
 
   _eventChannel.on(_eventChannel.EVENT_SELECT_GALLERY_IMAGES, function(event, eventData) {
     handleSelectGalleryImagesEvent(event, eventData)
+  })
+
+  _eventChannel.on(_eventChannel.EVENT_PICK_PREFERENCES_FOLDER, function(event, eventData) {
+    handlePickPreferencesFolderEvent(event, eventData)
   })
 
   _eventChannel.on(_eventChannel.EVENT_SAVE_PREFERENCES, function(event, eventData) {
@@ -122,6 +127,20 @@ function handleSelectGalleryImagesEvent(event, eventData) {
   catch (err) {
     logger.error(err);
   }
+}
+
+function handlePickPreferencesFolderEvent(event, eventData) {
+  //TODO: FIX warning parsing dir object. Try bumping electron to v2.0.1. Nice to have
+  dialog.showOpenDialog({properties: ['openDirectory']}).then(result => {
+    var folderPath = result.filePaths
+    logger.log('Directory path picked: ' + folderPath)
+
+    _eventChannel.send(_eventChannel.EVENT_PREFERENCES_FOLDER_PICKED, {
+      'folderPath': folderPath
+    })
+  }).catch(err => {
+    logger.error(err)
+  })
 }
 
 function handleSavePreferenceEvent(event, eventData) {

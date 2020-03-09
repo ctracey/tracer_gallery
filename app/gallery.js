@@ -20,6 +20,10 @@ module.exports = function(eventChannel) {
         cancelPreferencesAction()
       },
 
+      pickPreferencesFolderAction: function() {
+        pickPreferencesFolderAction()
+      },
+
     }
 
   return module;
@@ -45,6 +49,10 @@ function handleEvents() {
 
   _eventChannel.on(_eventChannel.EVENT_EDIT_PREFERENCES, function (event, eventData) {
     handleEditPreferencesEvent(event, eventData)
+  })
+
+  _eventChannel.on(_eventChannel.EVENT_PREFERENCES_FOLDER_PICKED, function (event, eventData) {
+    handlePreferencesFolderPickedEvent(event, eventData)
   })
 
   _eventChannel.on(_eventChannel.EVENT_PREFERENCES_SAVED, function (event, eventData) {
@@ -81,6 +89,12 @@ function handleEditPreferencesEvent(event, eventData) {
   showSettingsControls()
 }
 
+function handlePreferencesFolderPickedEvent(event, eventData) {
+  var folderPath = eventData['folderPath']
+  logger.debug('folder picked: ' + folderPath)
+  updateGalleryFolder(folderPath)
+}
+
 function handlePreferencesSavedEvent(event, eventData) {
   var preferencesValid = eventData['preferencesSaved']
   if (preferencesValid) {
@@ -105,6 +119,11 @@ function cancelPreferencesAction() {
   logger.log('ACTION: gallery#cancelPreferencesAction')
   hideSettingsControls()
   startGallery()
+}
+
+function pickPreferencesFolderAction() {
+  _eventChannel.send(_eventChannel.EVENT_PICK_PREFERENCES_FOLDER, {})
+  logger.debug('PICKING dir')
 }
 
 function startGallery() {
@@ -190,7 +209,7 @@ function showSettingsControls() {
   logger.log('show settings')
   pauseGallery()
 
-  $('#gallery-folder').val(_galleryPreferences.galleryFolder);
+  $('#preferences__gallery-folder').val(_galleryPreferences.galleryFolder);
   $('#refresh-interval').val(_galleryPreferences.refreshInterval);
   $('#num-columns').val(_galleryPreferences.numColumns);
 
@@ -232,7 +251,11 @@ function imageHTML(id, imagePath) {
 }
 
 function galleryFolder() {
-  return $('#gallery-folder').val();
+  return $('#preferences__gallery-folder').val();
+}
+
+function updateGalleryFolder(path) {
+  $('#preferences__gallery-folder').val(path);
 }
 
 function refreshInterval() {

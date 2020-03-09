@@ -17,20 +17,30 @@
   <body>
     <div id="settings-container" class="settings-container">
       <form>
-        <span>gallery folder</span>
         <input class='settings-container_cancel-button' type='button' value='x' id='cancelButton'/>
-        <input id='gallery-folder' class='gallery-folder' type='text'>
 
-        <br/>
-        <span>refresh interval</span>
-        <input id='refresh-interval' class='refresh-interval' type='text'>
+        <!-- TODO: picker spinner -->
+        <div class='preferences-option'>
+          <span class = 'preferences-gallery-folder-picker__label'>gallery folder</span>
+          <div class='preferences-gallery-folder-picker__action'>
+            <img id='settings-container__folder-picker' class='preferences-gallery-folder-picker__icon' title='select gallery folder' src='./assets/icon/folder_icon.png'/>
+          </div>
+          <input id='preferences__gallery-folder' class='preferences-gallery-folder__path' type='text' disabled>
+        </div>
 
-        <br/>
-        <span>num columns</span>
-        <input id='num-columns' class='num-columns' type='text'>
+        <div class='preferences-option'>
+          <span>refresh interval</span>
+          <input id='refresh-interval' class='preferences-refresh-interval' type='text'>
+        </div>
 
-        <br/>
-        <input type='button' value='exhibit' id='exhibitButton'/>
+        <div class='preferences-option'>
+          <span>num columns</span>
+          <input id='num-columns' class='preferences-num-columns' type='text'>
+        </div>
+
+        <div class='preferences-action'>
+          <input type='button' value='exhibit' id='exhibitButton'/>
+        </div>
       </form>
     </div>
 

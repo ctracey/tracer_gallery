@@ -8,18 +8,6 @@ body {
   background-color: #2f2f2f;
 }
 
-.gallery-folder {
-  width: 90%;
-}
-
-.refresh-interval {
-  width: 25%;
-}
-
-.num-columns {
-  width: 25%;
-}
-
 .settings-container {
   display: none; //hidden by default
   width: 95%;
@@ -41,6 +29,52 @@ body {
   background:none;
   color: #696969;
   padding-bottom: 8px;
+}
+
+.preferences-option {
+  width: 100%;
+  margin: 5px;
+}
+
+.preferences-gallery-folder-picker__label {
+  float: left;
+  width: 100%;
+}
+
+.preferences-action {
+  width: 100%;
+  text-align: center;
+  padding-bottom: 3px;
+}
+
+.preferences-action input {
+  margin-top: 15px;
+}
+
+.preferences-gallery-folder-picker__action {
+  max-width: 20%;
+  cursor: pointer;
+  float: left;
+}
+
+.preferences-gallery-folder-picker__icon {
+  height: 20px;
+  padding-top: 7px;
+}
+
+.preferences-gallery-folder__path {
+  color: #9c9c9c;
+  width: 400px;
+  max-width: 80%;
+  margin: 5px;
+}
+
+.preferences-refresh-interval {
+  width: 15px;
+}
+
+.preferences-num-columns {
+  width: 15px;
 }
 
 .text-centered {

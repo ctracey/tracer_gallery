@@ -1,22 +1,26 @@
 var logger = require("./logger")
 
-const EVENT_INIT_GALLERY =            'init-gallery'
-const EVENT_CLOSE_MAIN_WINDOW =       'close-mainwindow'
-const EVENT_GALLERY_LOADED =          'gallery-loaded'
-const EVENT_SAVE_PREFERENCES =        'save-preferences'
-const EVENT_PREFERENCES_SAVED =       'preferences-saved'
-const EVENT_EDIT_PREFERENCES =        'edit-preferences'
-const EVENT_SELECT_GALLERY_IMAGES =   'select-gallery-images'
-const EVENT_GALLERY_IMAGES_SELECTED = 'gallery-images-selected'
-const EVENT_MENU_ITEM_SELECTED =      'event-menu-item-selected'
-const EVENT_PLAYPAUSE_EXHIBITION =    'playpause-exhibition'
-const EVENT_PAUSE_EXHIBITION =        'pause-exhibition'
-const EVENT_TOGGLE_WINDOW_FRAME =     'toggle-window-frame'
+const EVENT_INIT_GALLERY =              'init-gallery'
+const EVENT_CLOSE_MAIN_WINDOW =         'close-mainwindow'
+const EVENT_GALLERY_LOADED =            'gallery-loaded'
+const EVENT_SELECT_GALLERY_IMAGES =     'select-gallery-images'
+const EVENT_GALLERY_IMAGES_SELECTED =   'gallery-images-selected'
 
-const EVENT_VIEW_IMAGE =              'view-image'
-const EVENT_IMAGEVIEW_LOADED =        'imageview-loaded'
-const EVENT_INIT_IMAGEVIEW =          'init-imageview'
-const EVENT_CLOSE_IMAGEVIEW =         'close-imageview'
+const EVENT_SAVE_PREFERENCES =          'save-preferences'
+const EVENT_PREFERENCES_SAVED =         'preferences-saved'
+const EVENT_EDIT_PREFERENCES =          'edit-preferences'
+const EVENT_PICK_PREFERENCES_FOLDER =   'pick-preferences-folder'
+const EVENT_PREFERENCES_FOLDER_PICKED = 'preferences-folder-picked'
+
+const EVENT_MENU_ITEM_SELECTED =        'event-menu-item-selected'
+const EVENT_PLAYPAUSE_EXHIBITION =      'playpause-exhibition'
+const EVENT_PAUSE_EXHIBITION =          'pause-exhibition'
+const EVENT_TOGGLE_WINDOW_FRAME =       'toggle-window-frame'
+
+const EVENT_VIEW_IMAGE =                'view-image'
+const EVENT_IMAGEVIEW_LOADED =          'imageview-loaded'
+const EVENT_INIT_IMAGEVIEW =            'init-imageview'
+const EVENT_CLOSE_IMAGEVIEW =           'close-imageview'
 
 module.exports = {
   class: class EventChannel {
@@ -24,11 +28,15 @@ module.exports = {
     get EVENT_INIT_GALLERY () { return EVENT_INIT_GALLERY }
     get EVENT_CLOSE_MAIN_WINDOW () { return EVENT_CLOSE_MAIN_WINDOW }
     get EVENT_GALLERY_LOADED () { return EVENT_GALLERY_LOADED }
+    get EVENT_SELECT_GALLERY_IMAGES () { return EVENT_SELECT_GALLERY_IMAGES }
+    get EVENT_GALLERY_IMAGES_SELECTED () { return EVENT_GALLERY_IMAGES_SELECTED }
+
     get EVENT_SAVE_PREFERENCES () { return EVENT_SAVE_PREFERENCES }
     get EVENT_PREFERENCES_SAVED () { return EVENT_PREFERENCES_SAVED }
     get EVENT_EDIT_PREFERENCES () { return EVENT_EDIT_PREFERENCES }
-    get EVENT_SELECT_GALLERY_IMAGES () { return EVENT_SELECT_GALLERY_IMAGES }
-    get EVENT_GALLERY_IMAGES_SELECTED () { return EVENT_GALLERY_IMAGES_SELECTED }
+    get EVENT_PICK_PREFERENCES_FOLDER () { return EVENT_PICK_PREFERENCES_FOLDER }
+    get EVENT_PREFERENCES_FOLDER_PICKED () { return EVENT_PREFERENCES_FOLDER_PICKED }
+
     get EVENT_MENU_ITEM_SELECTED () { return EVENT_MENU_ITEM_SELECTED }
     get EVENT_PLAYPAUSE_EXHIBITION () { return EVENT_PLAYPAUSE_EXHIBITION }
     get EVENT_PAUSE_EXHIBITION () { return EVENT_PAUSE_EXHIBITION }

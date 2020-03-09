@@ -33,13 +33,30 @@ function createApplicationMenu() {
   var menuTemplate = []
 
   menuTemplate.push(appMenuTemplate())
+  menuTemplate.push(fileMenuTemplate())
   menuTemplate.push(editMenuTemplate())
-  menuTemplate.push(galleryMenuTemplate())
   menuTemplate.push(viewMenuTemplate())
   menuTemplate.push(windowMenuTemplate())
+  menuTemplate.push(galleryMenuTemplate())
 
   var menu = Menu.buildFromTemplate(menuTemplate)
   Menu.setApplicationMenu(menu)
+}
+
+function fileMenuTemplate() {
+  return {
+    label: 'File',
+    submenu: [{
+      label: 'Open',
+      click() {
+        let proj = dialog.showOpenDialog({
+          properties: ['openFile', 'openDirectory']
+        });
+        log(proj);
+        // ent.open(proj);
+      }
+    }]
+  }
 }
 
 function editMenuTemplate() {

@@ -1,4 +1,5 @@
 const EventChannel = require("./app/eventChannel").class
+const {shell} = require('electron')
 var logger = require("./app/logger")
 
 let eventChannel
@@ -23,14 +24,16 @@ $(() => {
 
 function handleActions(imageViewer) {
   // HANDLE JQUERY ACTIONS
-  // TODO: refactor this
-  //   handler, events?, class names, icon pointer
-  const {shell} = require('electron')
-  var folderButton = document.getElementById('folderButton')
-  folderButton.addEventListener('click', function (event) {
-    var viewerImage = document.getElementById('viewer-image')
-    shell.showItemInFolder(viewerImage.src.replace('file://', ''))
+
+  var openImageInFolderAction = document.getElementById('openImageInFolderAction')
+  openImageInFolderAction.addEventListener('click', function (event) {
+    handleOpenInFolderAction(event)
   })
+}
+
+function handleOpenInFolderAction(event) {
+  var viewerImage = document.getElementById('viewer-image')
+  shell.showItemInFolder(viewerImage.src.replace('file://', ''))
 }
 
 function initEventChannel() {
