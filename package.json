@@ -12,7 +12,7 @@
   ],
   "author": "ctracey",
   "devDependencies": {
-    "electron": "^8.1.1"
+    "electron": "^8.5.2"
   },
   "dependencies": {
     "fs": "0.0.1-security",
